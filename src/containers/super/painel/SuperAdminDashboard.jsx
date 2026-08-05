@@ -113,16 +113,38 @@ export function SuperAdminDashboard() {
 
     async function handleEditAdminClick(shop) {
         setSelectedShopId(shop.id);
-        setIsEditingAdmin(true);
 
         const admin = shop.users && shop.users.length > 0 ? shop.users[0] : null;
 
         if (admin) {
+            setIsEditingAdmin(true); // Se existir admin, entra no modo Edição (PUT)
             setAdminName(admin.name || "");
             setAdminEmail(admin.email || "");
             setAdminPhone(admin.client_phone || "");
             setAdminPassword("");
         } else {
+            setIsEditingAdmin(false); // Se NÃO existir admin, entra no modo Cadastro (POST)
+            setAdminName("");
+            setAdminEmail("");
+            setAdminPhone("");
+            setAdminPassword("");
+        }
+    }
+
+    function handleShopSelectChange(shopId) {
+        setSelectedShopId(shopId);
+
+        const shop = barbershops.find((s) => s.id === shopId);
+        const admin = shop?.users && shop.users.length > 0 ? shop.users[0] : null;
+
+        if (admin) {
+            setIsEditingAdmin(true);
+            setAdminName(admin.name || "");
+            setAdminEmail(admin.email || "");
+            setAdminPhone(admin.client_phone || "");
+            setAdminPassword("");
+        } else {
+            setIsEditingAdmin(false);
             setAdminName("");
             setAdminEmail("");
             setAdminPhone("");
@@ -251,7 +273,7 @@ export function SuperAdminDashboard() {
                     <Form onSubmit={handleSaveAdmin}>
                         <Select
                             value={selectedShopId}
-                            onChange={(e) => setSelectedShopId(e.target.value)}
+                            onChange={(e) => handleShopSelectChange(e.target.value)}
                             required
                         >
                             <option value="">Selecione a Barbearia...</option>
