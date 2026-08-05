@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
@@ -32,6 +32,34 @@ import {
     ButtonGroup,
 } from "./styles.js";
 
+// 🔴 MOVIDO PARA FORA DO COMPONENTE (evita redefinição em todo render)
+const profileSchema = yup
+    .object({
+        name: yup
+            .string()
+            .min(2, "O nome deve ter pelo menos 2 caracteres")
+            .required("O nome é obrigatório"),
+        client_phone: yup
+            .string()
+            .min(8, "Informe um telefone válido com DDI/DDD")
+            .required("O telefone é obrigatório"),
+    })
+    .required();
+
+const passwordSchema = yup
+    .object({
+        old_password: yup.string().required("A senha atual é obrigatória"),
+        new_password: yup
+            .string()
+            .min(6, "A nova senha deve ter pelo menos 6 caracteres")
+            .required("A nova senha é obrigatória"),
+        confirm_new_password: yup
+            .string()
+            .oneOf([yup.ref("new_password")], "As senhas devem ser iguais")
+            .required("Confirme a nova senha"),
+    })
+    .required();
+
 export function MinhaConta() {
     const { userInfo, logout, putUserData } = useUser();
     const navigate = useNavigate();
@@ -54,40 +82,30 @@ export function MinhaConta() {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // Schema Yup para edição de dados pessoais
-    const profileSchema = yup
-        .object({
-            name: yup
-                .string()
-                .min(2, "O nome deve ter pelo menos 2 caracteres")
-                .required("O nome é obrigatório"),
-            client_phone: yup
-                .string()
-                .min(8, "Informe um telefone válido com DDI/DDD")
-                .required("O telefone é obrigatório"),
-        })
-        .required();
+    useEffect(() => {
+        async function fetchUserData() {
+            try {
+                const { data } = await api.get("/me");
+                if (data) {
+                    putUserData({
+                        ...data,
+                        client_phone: data.client_phone || data.phone || "",
+                        phone: data.client_phone || data.phone || "",
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao buscar dados atualizados do usuário:", error);
+            }
+        }
 
-    // Schema Yup para alteração de senha
-    const passwordSchema = yup
-        .object({
-            old_password: yup.string().required("A senha atual é obrigatória"),
-            new_password: yup
-                .string()
-                .min(6, "A nova senha deve ter pelo menos 6 caracteres")
-                .required("A nova senha é obrigatória"),
-            confirm_new_password: yup
-                .string()
-                .oneOf([yup.ref("new_password")], "As senhas devem ser iguais")
-                .required("Confirme a nova senha"),
-        })
-        .required();
+        fetchUserData();
+    }, [putUserData]);
 
     // Configuração React Hook Form - Perfil
-    // A opção `values` atualiza os campos automaticamente quando userInfo é carregado
     const {
         register: registerProfile,
         handleSubmit: handleSubmitProfile,
+        reset: resetProfileForm,
         formState: { errors: profileErrors },
     } = useForm({
         resolver: yupResolver(profileSchema),
@@ -120,10 +138,9 @@ export function MinhaConta() {
 
             if (updatedUser) {
                 putUserData({
-                    ...userInfo,
-                    name: updatedUser.name,
-                    client_phone: updatedUser.client_phone,
-                    phone: updatedUser.client_phone,
+                    ...updatedUser,
+                    client_phone: updatedUser.client_phone || updatedUser.phone || "",
+                    phone: updatedUser.client_phone || updatedUser.phone || "",
                 });
             }
 
@@ -206,8 +223,6 @@ export function MinhaConta() {
         }
     }
 
-    // 🔴 PROTEÇÃO CONTRA ESTADO NÃO CARREGADO:
-    // Se o userInfo ainda não foi carregado do context/localStorage, exibe tela de carregamento
     if (!userInfo || Object.keys(userInfo).length === 0) {
         return (
             <Container>
@@ -293,7 +308,10 @@ export function MinhaConta() {
                                 <ActionButton
                                     type="button"
                                     $secondary
-                                    onClick={() => setShowProfileForm(false)}
+                                    onClick={() => {
+                                        setShowProfileForm(false);
+                                        resetProfileForm();
+                                    }}
                                 >
                                     Cancelar
                                 </ActionButton>
@@ -329,6 +347,7 @@ export function MinhaConta() {
                                     />
                                     <button
                                         type="button"
+                                        aria-label={showOldPassword ? "Ocultar senha" : "Exibir senha"}
                                         onClick={() => setShowOldPassword(!showOldPassword)}
                                         style={{
                                             position: "absolute",
@@ -358,6 +377,7 @@ export function MinhaConta() {
                                     />
                                     <button
                                         type="button"
+                                        aria-label={showNewPassword ? "Ocultar senha" : "Exibir senha"}
                                         onClick={() => setShowNewPassword(!showNewPassword)}
                                         style={{
                                             position: "absolute",
@@ -387,6 +407,7 @@ export function MinhaConta() {
                                     />
                                     <button
                                         type="button"
+                                        aria-label={showConfirmPassword ? "Ocultar senha" : "Exibir senha"}
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                         style={{
                                             position: "absolute",
