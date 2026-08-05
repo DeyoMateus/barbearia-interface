@@ -50,7 +50,7 @@ export function Home() {
                     const barbershopResponse = await api.get(
                         `/barbershops/${targetSlug}`,
                         {
-                            withCredentials: false,
+                            withCredentials: true,
                         }
                     );
                     setBarbershop(barbershopResponse.data);
@@ -58,7 +58,7 @@ export function Home() {
 
                 // 2. Busca de Categorias
                 const response = await api.get("/categories/service", {
-                    withCredentials: false,
+                    withCredentials: true,
                 });
 
                 const categoriesFromApi = response.data.categories.map((cat) => ({
