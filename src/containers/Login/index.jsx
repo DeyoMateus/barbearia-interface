@@ -56,11 +56,11 @@ export function Login() {
             async function fetchBarbershop() {
                 try {
                     const response = await api.get(`/barbershops/${barbershopSlug}`, {
-                        withCredentials: false
+                        withCredentials: true,
                     });
                     setBarbershopData(response.data);
                 } catch (error) {
-                    console.error("Erro ao buscar dados da barbearia:", error);
+                    console.error("Erro ao buscar dados da barbearia:");
                 } finally {
                     setLoadingBarbershop(false);
                 }
