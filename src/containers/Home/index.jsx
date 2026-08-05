@@ -4,6 +4,7 @@ import { AnimatedBg } from "../../components/CartButton/AnimatedBg";
 import { CartButton } from "../../components/CartButton/CartButton";
 import { ServiceCard } from "../../services/cart1/ServiceCard.jsx";
 import { useNavigate, useParams } from "react-router-dom";
+import { obterBarbershopSlug } from "../../utils/barbershopSlug.js";
 
 import {
     Container,
@@ -15,9 +16,11 @@ import {
 } from "./styles";
 import { useCart } from "../../hooks/useCart.jsx";
 
-const BANNER_PADRAO = "https://placehold.co/800x400/1a1a1a/c9a84c?text=Barbearia";
+// Fallback visual via URL
+const BANNER_PADRAO =
+    "https://placehold.co/800x400/1a1a1a/c9a84c?text=Barbearia";
 
-// Helper para tratar URLs relativas ou absolutas
+// Helper idêntico ao do Login para formatar URLs relativas e absolutas
 const formatImageUrl = (path, fallback) => {
     if (!path) return fallback;
     if (path.startsWith("http")) return path;
@@ -38,16 +41,22 @@ export function Home() {
 
     useEffect(() => {
         async function loadData() {
+            // Pega o slug da URL ou do localStorage (caso esteja em rota /app)
+            const targetSlug = barbershopSlug || obterBarbershopSlug();
+
             try {
-                // 1. Busca os dados da Barbearia pelo Slug
-                if (barbershopSlug) {
-                    const barbershopResponse = await api.get(`/barbershops/${barbershopSlug}`, {
-                        withCredentials: false,
-                    });
+                // 1. Replicando a busca da Barbearia pelo Slug (como no Login)
+                if (targetSlug) {
+                    const barbershopResponse = await api.get(
+                        `/barbershops/${targetSlug}`,
+                        {
+                            withCredentials: false,
+                        }
+                    );
                     setBarbershop(barbershopResponse.data);
                 }
 
-                // 2. Busca as categorias de serviço
+                // 2. Busca de Categorias
                 const response = await api.get("/categories/service", {
                     withCredentials: false,
                 });
@@ -76,14 +85,21 @@ export function Home() {
 
     const currentCat = categoriesData?.find((c) => c.id === activeCategory);
 
-    // Formata a URL da imagem no escopo do componente
+    // Formata a imagem do banner usando o helper
     const bannerUrl = formatImageUrl(barbershop?.home_banner_url, BANNER_PADRAO);
 
     if (loading) {
         return (
             <Container>
-                <div style={{ color: "#c9a84c", textAlign: "center", paddingTop: "30vh", fontFamily: "sans-serif" }}>
-                    <h2>Carregando serviços...</h2>
+                <div
+                    style={{
+                        color: "#c9a84c",
+                        textAlign: "center",
+                        paddingTop: "30vh",
+                        fontFamily: "sans-serif",
+                    }}
+                >
+                    <h2>Carregando serviços do banco...</h2>
                 </div>
             </Container>
         );
