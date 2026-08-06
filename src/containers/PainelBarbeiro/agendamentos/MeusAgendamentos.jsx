@@ -87,11 +87,9 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
     const [loading, setLoading] = useState(true);
     const [filtroAtivo, setFiltroAtivo] = useState("ALL");
 
-    // Filtro de datas (Hoje até +7 dias)
     const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
     const [endDate, setEndDate] = useState(format(addDays(new Date(), 7), "yyyy-MM-dd"));
 
-    // Estados de Paginação
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const limit = 20;
@@ -110,7 +108,6 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
                     limit,
                     startDate,
                     endDate,
-
                     status: filtroAtivo !== "ALL" ? APPOINTMENT_STATUS[filtroAtivo] : undefined,
                 },
                 withCredentials: true,
@@ -153,28 +150,102 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
         loadDadosPainel();
     }, [loadDadosPainel, refreshTrigger]);
 
-    const handleStatusUpdate = async (appointmentId, newStatus) => {
+    const executarAtualizacaoNoBanco = async (appointmentId, newStatus, cancellation_reason) => {
         try {
-
             await api.patch(
                 `/agendamento/${appointmentId}/status`,
                 {
                     status: newStatus,
+                    cancellation_reason: cancellation_reason || "Sem motivo informado",
                 },
                 { withCredentials: true }
             );
 
-            toast.success("Status do agendamento atualizado com sucesso!");
+            toast.success("Status atualizado com sucesso!");
             loadDadosPainel();
         } catch (error) {
             console.error("Erro ao atualizar status:");
-
             const mensagemErro = error.response?.data?.error
                 || error.response?.data?.message
                 || "Erro ao atualizar o status do agendamento.";
-
             toast.error(mensagemErro);
         }
+    };
+
+    const handleStatusUpdate = (appointmentId, newStatus) => {
+        if (newStatus === APPOINTMENT_STATUS.CANCELED) {
+            const CancelToast = ({ closeToast }) => {
+                const [motivo, setMotivo] = useState("");
+
+                return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#fff' }}>
+                            Informe o motivo do cancelamento: ⚠️
+                        </span>
+                        <input
+                            type="text"
+                            value={motivo}
+                            onChange={(e) => setMotivo(e.target.value)}
+                            placeholder="Motivo (ex: Imprevisto do barbeiro)"
+                            style={{
+                                padding: '8px 10px',
+                                borderRadius: '4px',
+                                border: '1px solid #444',
+                                backgroundColor: '#1a1a1a',
+                                color: '#fff',
+                                outline: 'none',
+                                fontSize: '13px',
+                            }}
+                        />
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                            <button
+                                onClick={() => {
+                                    closeToast();
+                                    executarAtualizacaoNoBanco(appointmentId, newStatus, motivo);
+                                }}
+                                style={{
+                                    backgroundColor: '#ff4d4f',
+                                    color: '#fff',
+                                    border: 'none',
+                                    padding: '6px 12px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    fontSize: '12px'
+                                }}
+                            >
+                                Confirmar Cancelamento
+                            </button>
+                            <button
+                                onClick={closeToast}
+                                style={{
+                                    backgroundColor: '#444',
+                                    color: '#fff',
+                                    border: 'none',
+                                    padding: '6px 12px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px'
+                                }}
+                            >
+                                Voltar
+                            </button>
+                        </div>
+                    </div>
+                );
+            };
+
+            toast(<CancelToast />, {
+                position: "top-center",
+                autoClose: false,
+                closeOnClick: false,
+                draggable: false,
+                theme: "dark",
+            });
+            return;
+        }
+
+        executarAtualizacaoNoBanco(appointmentId, newStatus, null);
     };
 
     const isBarberOrAdmin = userInfo?.role === "barber" || userInfo?.role === "admin" || userInfo?.admin === true;
@@ -182,7 +253,6 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
     return (
         <Wrapper>
             <Content $loading={loading}>
-
                 {barberId !== "ALL" && (
                     <AvailabilitySection>
                         <SectionTitle>⚙️ Horários de Atendimento Salvos do Colaborador</SectionTitle>
@@ -223,7 +293,6 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
                         🗓️ Compromissos Agendados {barberId === "ALL" && "(Visão Geral da Casa)"}
                     </AppointmentsHeader>
 
-                    {/* Controles de Intervalo de Datas */}
                     <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', alignItems: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <label style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>Data Inicial:</label>
@@ -245,7 +314,6 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
                         </div>
                     </div>
 
-                    {/* Botões de Filtro de Status */}
                     <FiltersRow>
                         {["ALL", "CONFIRMED", "COMPLETED", "CANCELED"].map((chave) => (
                             <FilterButton
@@ -258,7 +326,6 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
                         ))}
                     </FiltersRow>
 
-                    {/* Renderização usando 'agendamentos' diretamente da API */}
                     {agendamentos.length === 0 ? (
                         <EmptyBox>
                             <EmptyBoxText>Nenhum agendamento encontrado para este filtro.</EmptyBoxText>
@@ -283,6 +350,15 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
 
                                                 <CardLabel>SERVIÇO</CardLabel>
                                                 <CardServiceName>💈 {item.service_name || "Serviço"}</CardServiceName>
+
+                                                {statusAtual === APPOINTMENT_STATUS.CANCELED && item.cancellation_reason && (
+                                                    <div style={{ marginTop: '10px', padding: '8px', backgroundColor: '#fff1f0', borderRadius: '4px', border: '1px solid #ffa39e' }}>
+                                                        <CardLabel style={{ color: '#cf1322' }}>MOTIVO DO CANCELAMENTO:</CardLabel>
+                                                        <p style={{ fontSize: '13px', color: '#cf1322', margin: '4px 0 0 0' }}>
+                                                            {item.cancellation_reason}
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div>
@@ -308,7 +384,6 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
                                 })}
                             </CardsGrid>
 
-                            {/* Controles de Paginação */}
                             {totalPages > 1 && (
                                 <PaginationContainer>
                                     <PaginationButton
@@ -331,7 +406,6 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
                         </>
                     )}
                 </div>
-
             </Content>
         </Wrapper>
     );

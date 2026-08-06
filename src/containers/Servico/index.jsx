@@ -30,7 +30,6 @@ import {
     PageButton,
 } from "./styles.js";
 
-// Formata 'YYYY-MM-DD' para 'DD/MM/YYYY' de forma segura (evita bugs de fuso horário)
 function formatarDataBR(dataStr) {
     if (!dataStr) return "";
     const apenasData = dataStr.split("T")[0];
@@ -41,7 +40,6 @@ function formatarDataBR(dataStr) {
     return dataStr;
 }
 
-// Formata 'HH:mm:ss' para 'HH:mm'
 function formatarHoraBR(horaStr) {
     if (!horaStr) return "";
     const partes = horaStr.split(":");
@@ -78,7 +76,6 @@ export const Servico = () => {
         async function loadUserAppointments() {
             setLoading(true);
             try {
-                // Buscamos os agendamentos do usuário
                 const response = await api.get(`/agendamento?page=1&limit=6`, { withCredentials: true });
                 setAppointments(response.data.appointments || []);
             } catch (error) {
@@ -91,14 +88,16 @@ export const Servico = () => {
         loadUserAppointments();
     }, []);
 
-    const executarCancelamentoNoBanco = async (appointmentId) => {
+    const executarCancelamentoNoBanco = async (appointmentId, motivoInformado) => {
+        const motivoFinal = motivoInformado?.trim() || "Cancelado pelo cliente";
+
         try {
             await toast.promise(
                 api.patch(
                     `/agendamento/${appointmentId}/status`,
                     {
                         status: APPOINTMENT_STATUS.CANCELED,
-                        cancellation_reason: "Cancelado pelo cliente"
+                        cancellation_reason: motivoFinal
                     },
                     { withCredentials: true },
                 ),
@@ -110,7 +109,7 @@ export const Servico = () => {
             );
 
             setAppointments((prev) =>
-                prev.map((app) => (app.id === appointmentId ? { ...app, status: APPOINTMENT_STATUS.CANCELED } : app)),
+                prev.map((app) => (app.id === appointmentId ? { ...app, status: APPOINTMENT_STATUS.CANCELED, cancellation_reason: motivoFinal } : app)),
             );
         } catch (error) {
             console.error("Erro interno ao cancelar:");
@@ -118,23 +117,44 @@ export const Servico = () => {
     };
 
     const handleCancelarAgendamento = (appointmentId) => {
-        const ConfirmacaoToast = ({ closeToast }) => (
-            <div>
-                <ConfirmToastText>Atenção! Deseja realmente cancelar este agendamento? ⚠️</ConfirmToastText>
-                <ConfirmToastActions>
-                    <ConfirmToastButton
-                        $variant="danger"
-                        onClick={() => {
-                            closeToast();
-                            executarCancelamentoNoBanco(appointmentId);
+        const ConfirmacaoToast = ({ closeToast }) => {
+            const [motivo, setMotivo] = useState("");
+
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <ConfirmToastText>Atenção! Deseja realmente cancelar este agendamento? ⚠️</ConfirmToastText>
+
+                    <input
+                        type="text"
+                        value={motivo}
+                        onChange={(e) => setMotivo(e.target.value)}
+                        placeholder="Motivo do cancelamento (opcional)"
+                        style={{
+                            padding: '8px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid #444',
+                            backgroundColor: '#1a1a1a',
+                            color: '#fff',
+                            outline: 'none',
+                            fontSize: '13px',
                         }}
-                    >
-                        Sim, cancelar
-                    </ConfirmToastButton>
-                    <ConfirmToastButton onClick={closeToast}>Voltar</ConfirmToastButton>
-                </ConfirmToastActions>
-            </div>
-        );
+                    />
+
+                    <ConfirmToastActions>
+                        <ConfirmToastButton
+                            $variant="danger"
+                            onClick={() => {
+                                closeToast();
+                                executarCancelamentoNoBanco(appointmentId, motivo);
+                            }}
+                        >
+                            Sim, cancelar
+                        </ConfirmToastButton>
+                        <ConfirmToastButton onClick={closeToast}>Voltar</ConfirmToastButton>
+                    </ConfirmToastActions>
+                </div>
+            );
+        };
 
         toast(<ConfirmacaoToast />, {
             position: "top-center",
@@ -145,7 +165,6 @@ export const Servico = () => {
         });
     };
 
-    // Filtragem correta sobre a lista completa
     const agendamentosFiltrados = appointments.filter((app) => {
         if (filtroStatus === "CONFIRMADOS") {
             return app.status?.toLowerCase() === APPOINTMENT_STATUS.CONFIRMED;
@@ -156,14 +175,12 @@ export const Servico = () => {
         return true;
     });
 
-    // Paginação calculada no frontend
     const totalPages = Math.ceil(agendamentosFiltrados.length / itensPorPagina) || 1;
     const agendamentosPaginados = agendamentosFiltrados.slice(
         (page - 1) * itensPorPagina,
         page * itensPorPagina
     );
 
-    // Contagens totais reais para os botões de filtro
     const totalConfirmados = appointments.filter((a) => a.status?.toLowerCase() === APPOINTMENT_STATUS.CONFIRMED).length;
     const totalHistorico = appointments.filter((a) => a.status?.toLowerCase() !== APPOINTMENT_STATUS.CONFIRMED).length;
 
@@ -200,7 +217,6 @@ export const Servico = () => {
                     <GridContainer>
                         {agendamentosPaginados.map((appt, index) => {
                             const statusAtual = appt.status?.toLowerCase();
-                            // Numeração contínua calculada corretamente pela página
                             const numeroCard = String((page - 1) * itensPorPagina + index + 1).padStart(2, "0");
 
                             return (
@@ -221,6 +237,24 @@ export const Servico = () => {
                                     <StatusTag status={statusAtual}>
                                         {(STATUS_LABELS[statusAtual] || STATUS_LABELS[appt.status] || statusAtual || "Confirmado").toUpperCase()}
                                     </StatusTag>
+
+                                    {statusAtual === APPOINTMENT_STATUS.CANCELED && appt.cancellation_reason && (
+                                        <div style={{
+                                            marginTop: '12px',
+                                            padding: '8px 12px',
+                                            backgroundColor: 'rgba(255, 77, 79, 0.1)',
+                                            borderRadius: '6px',
+                                            border: '1px solid rgba(255, 77, 79, 0.3)',
+                                            textAlign: 'left'
+                                        }}>
+                                            <span style={{ fontSize: '11px', color: '#ff4d4f', fontWeight: 'bold', display: 'block' }}>
+                                                MOTIVO DO CANCELAMENTO:
+                                            </span>
+                                            <span style={{ fontSize: '12px', color: '#e0e0e0', marginTop: '2px', display: 'block' }}>
+                                                {appt.cancellation_reason}
+                                            </span>
+                                        </div>
+                                    )}
 
                                     {statusAtual === APPOINTMENT_STATUS.CONFIRMED && (
                                         <CancelButton onClick={() => handleCancelarAgendamento(appt.id)}>

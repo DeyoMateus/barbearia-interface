@@ -102,7 +102,6 @@ export function AnimatedBg({ style }) {
         let W, H, raf;
 
         const resize = () => {
-            // 🛡️ LINHA DE SEGURANÇA: Se o rootRef ainda for null, para a execução e evita o erro!
             if (!rootRef.current) return;
 
             const r = rootRef.current.getBoundingClientRect();
@@ -118,7 +117,7 @@ export function AnimatedBg({ style }) {
     }, []);
 
     return (
-        <div ref={rootRef} style={{ position: "absolute", inset: 0, ...style }}>
+        <div ref={rootRef} style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none", ...style }}>
             <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
         </div>
     );
