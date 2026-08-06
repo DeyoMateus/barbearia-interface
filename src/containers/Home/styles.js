@@ -5,6 +5,15 @@ import { C as themeColors, font as themeFonts } from "../../constants/theme.js";
 
 // ─── COMPONENTES ESTILIZADOS ────────────────────────────────────────────────
 
+export const CanvasElement = styled.canvas`
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+`;
+
 export const Container = styled.div`
   position: relative;
   min-height: 100vh;

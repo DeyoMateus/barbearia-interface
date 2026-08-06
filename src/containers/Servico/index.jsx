@@ -80,7 +80,7 @@ export const Servico = () => {
             setLoading(true);
             try {
                 // Buscamos os agendamentos do usuário
-                const response = await api.get(`/agendamento?page=1&limit=100`, { withCredentials: true });
+                const response = await api.get(`/agendamento?page=2&limit=6`, { withCredentials: true });
                 setAppointments(response.data.appointments || []);
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:");
@@ -92,7 +92,7 @@ export const Servico = () => {
         loadUserAppointments();
     }, []);
 
-    // 🎨 Efeito do Canvas (animação de fundo) — inalterado
+    // 🎨 Efeito do Canvas (animação de fundo)
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
