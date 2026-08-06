@@ -5,6 +5,7 @@ import { CartButton } from "../../components/CartButton/CartButton";
 import { ServiceCard } from "../../services/cart1/ServiceCard.jsx";
 import { useNavigate, useParams } from "react-router-dom";
 import { obterBarbershopSlug } from "../../utils/barbershopSlug.js";
+
 import {
   Container,
   ContainerRight,
@@ -14,12 +15,10 @@ import {
   styles,
 } from "./styles";
 import { useCart } from "../../hooks/useCart.jsx";
-// Fallback visual via URL
 
 const BANNER_PADRAO =
   "https://placehold.co/800x400/1a1a1a/c9a84c?text=Barbearia";
-
-// Helper idêntico ao do Login para formatar URLs relativas e absolutas
+const LOGO_PADRAO = "https://placehold.co/200x200/1a1a1a/c9a84c?text=Logo";
 
 const formatImageUrl = (path, fallback) => {
   if (!path) return fallback;
@@ -31,28 +30,31 @@ const formatImageUrl = (path, fallback) => {
 export function Home() {
   const navigate = useNavigate();
   const { barbershopSlug } = useParams();
+
   const [activeCategory, setActiveCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [barbershop, setBarbershop] = useState(null);
   const [categoriesData, setCategoriesData] = useState([]);
+
   const { cart, toggleService, total, onCheckout } = useCart();
 
   useEffect(() => {
     async function loadData() {
-      // Pega o slug da URL ou do localStorage (caso esteja em rota /app)
       const targetSlug = barbershopSlug || obterBarbershopSlug();
+
       try {
-        // 1. Replicando a busca da Barbearia pelo Slug (como no Login)
         if (targetSlug) {
           const barbershopResponse = await api.get(
             `/barbershops/${targetSlug}`,
-            {
-              withCredentials: true,
-            },
+            { withCredentials: true },
           );
-          setBarbershop(barbershopResponse.data);
+
+          // CORREÇÃO: Garante o resgate dos dados independente de vir direto ou dentro de response.data.barbershop
+          const data =
+            barbershopResponse.data?.barbershop || barbershopResponse.data;
+          setBarbershop(data);
         }
-        // 2. Busca de Categorias
+
         const response = await api.get("/categories/service", {
           withCredentials: true,
         });
@@ -81,9 +83,14 @@ export function Home() {
 
   const currentCat = categoriesData?.find((c) => c.id === activeCategory);
 
-  // Formata a imagem do banner usando o helper
+  // CORREÇÃO: Fallbacks flexíveis para diferentes nomes de campos do BD (home_banner_url / banner_url / banner)
+  const bannerPath =
+    barbershop?.home_banner_url || barbershop?.banner_url || barbershop?.banner;
+  const bannerUrl = formatImageUrl(bannerPath, BANNER_PADRAO);
 
-  const bannerUrl = formatImageUrl(barbershop?.home_banner_url, BANNER_PADRAO);
+  // CORREÇÃO: Adicionada a busca formatada da Logo
+  const logoPath = barbershop?.logo_url || barbershop?.logo;
+  const logoUrl = formatImageUrl(logoPath, LOGO_PADRAO);
 
   if (loading) {
     return (
@@ -91,11 +98,8 @@ export function Home() {
         <div
           style={{
             color: "#c9a84c",
-
             textAlign: "center",
-
             paddingTop: "30vh",
-
             fontFamily: "sans-serif",
           }}
         >
@@ -110,14 +114,34 @@ export function Home() {
       <AnimatedBg />
 
       <ContainerRight>
-        <header>
+        {/* Header ajustado com a renderização da Logo da Barbearia */}
+        <header
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "20px",
+          }}
+        >
+          <img
+            src={logoUrl}
+            alt={barbershop?.name || "Logo Barbearia"}
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: "1px solid #c9a84c",
+            }}
+          />
           <div>
             <h1 style={styles.brandTitle}>
               {barbershop?.name || "Premium Barber"}
             </h1>
           </div>
-
-          <span style={styles.clientBadge}>Olá, Cliente</span>
+          <span style={{ ...styles.clientBadge, marginLeft: "auto" }}>
+            Olá, Cliente
+          </span>
         </header>
 
         <HeroSection>
@@ -128,17 +152,14 @@ export function Home() {
                 alto padrão
               </span>
             </h2>
-
             <p style={styles.heroSubtitle}>
               Escolha os serviços desejados abaixo.
             </p>
-
             <div style={styles.heroDivider} />
           </div>
 
           <div style={styles.heroImageWrapper}>
             <div style={styles.heroOverlay} />
-
             <img
               src={bannerUrl}
               alt={`Banner de ${barbershop?.name || "Barbearia"}`}
@@ -151,12 +172,9 @@ export function Home() {
         <ContainerCategory>
           {categoriesData.map((cat) => {
             const active = cat.id === activeCategory;
-
             const countInCat = cart.filter((s) =>
               categoriesData
-
                 .find((c) => c.id === cat.id)
-
                 ?.services.some((x) => x.id === s.id),
             ).length;
 
@@ -167,9 +185,7 @@ export function Home() {
                 style={styles.tabButton(active)}
               >
                 <span>{cat.icon || "✦"}</span>
-
                 {cat.label}
-
                 {countInCat > 0 && (
                   <span style={styles.tabBadge(active)}>{countInCat}</span>
                 )}
@@ -202,9 +218,8 @@ export function Home() {
         count={cart.length}
         total={total}
         onClick={() => {
-          const canAvançar = onCheckout();
-
-          if (canAvançar) {
+          const canAvancar = onCheckout();
+          if (canAvancar) {
             navigate("/app/agendamento");
           } else {
             alert("Selecione pelo menos um serviço para agendar!");
