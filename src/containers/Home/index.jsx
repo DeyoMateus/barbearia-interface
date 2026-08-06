@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { api } from "../../services/api.js";
 import { AnimatedBg } from "../../components/CartButton/AnimatedBg";
 import { CartButton } from "../../components/CartButton/CartButton";
@@ -38,12 +38,11 @@ export function Home() {
   const [categoriesData, setCategoriesData] = useState([]);
 
   const { cart, toggleService, total, onCheckout } = useCart();
-  3;
 
   const categoryCarouselRef = useRef(null);
   const serviceCarouselRef = useRef(null);
 
-  // 2. Função genérica de rolagem
+  // Função de rolagem dos carrosséis
   const handleScroll = (ref, direction) => {
     if (ref.current) {
       const scrollAmount = direction === "left" ? -260 : 260;
@@ -170,90 +169,88 @@ export function Home() {
           </div>
         </HeroSection>
 
-        <ContainerRight>
-          {/* CARROSSEL DE CATEGORIAS COM SETAS */}
-          <CarouselWrapper>
-            <ScrollButton
-              direction="left"
-              onClick={() => handleScroll(categoryCarouselRef, "left")}
-              aria-label="Voltar categorias"
-            >
-              ‹
-            </ScrollButton>
+        {/* CARROSSEL DE CATEGORIAS COM SETAS */}
+        <CarouselWrapper>
+          <ScrollButton
+            direction="left"
+            onClick={() => handleScroll(categoryCarouselRef, "left")}
+            aria-label="Voltar categorias"
+          >
+            ‹
+          </ScrollButton>
 
-            <ContainerCategory ref={categoryCarouselRef}>
-              {categoriesData.map((cat) => {
-                const active = cat.id === activeCategory;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    style={styles.tabButton(active)}
-                  >
-                    <span>{cat.icon || "✦"}</span>
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </ContainerCategory>
+          <ContainerCategory ref={categoryCarouselRef}>
+            {categoriesData.map((cat) => {
+              const active = cat.id === activeCategory;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  style={styles.tabButton(active)}
+                >
+                  <span>{cat.icon || "✦"}</span>
+                  {cat.label}
+                </button>
+              );
+            })}
+          </ContainerCategory>
 
-            <ScrollButton
-              direction="right"
-              onClick={() => handleScroll(categoryCarouselRef, "right")}
-              aria-label="Avançar categorias"
-            >
-              ›
-            </ScrollButton>
-          </CarouselWrapper>
+          <ScrollButton
+            direction="right"
+            onClick={() => handleScroll(categoryCarouselRef, "right")}
+            aria-label="Avançar categorias"
+          >
+            ›
+          </ScrollButton>
+        </CarouselWrapper>
 
-          {/* CARROSSEL DE SERVIÇOS COM SETAS */}
-          <ContainerServices>
-            {currentCat && (
-              <div>
-                <h3 style={styles.categoryTitle}>
-                  {currentCat.icon} {currentCat.label}
-                </h3>
+        {/* CARROSSEL DE SERVIÇOS COM SETAS */}
+        <ContainerServices>
+          {currentCat && (
+            <div>
+              <h3 style={styles.categoryTitle}>
+                {currentCat.icon} {currentCat.label}
+              </h3>
 
-                <CarouselWrapper>
-                  <ScrollButton
-                    direction="left"
-                    onClick={() => handleScroll(serviceCarouselRef, "left")}
-                    aria-label="Voltar serviços"
-                  >
-                    ‹
-                  </ScrollButton>
+              <CarouselWrapper>
+                <ScrollButton
+                  direction="left"
+                  onClick={() => handleScroll(serviceCarouselRef, "left")}
+                  aria-label="Voltar serviços"
+                >
+                  ‹
+                </ScrollButton>
 
-                  <div ref={serviceCarouselRef} style={styles.carouselServices}>
-                    {currentCat.services.map((service) => (
-                      <div
-                        key={service.id}
-                        style={{
-                          scrollSnapAlign: "start",
-                          flexShrink: 0,
-                          width: "280px",
-                        }}
-                      >
-                        <ServiceCard
-                          service={service}
-                          inCart={!!cart.find((s) => s.id === service.id)}
-                          onToggle={() => toggleService(service)}
-                        />
-                      </div>
-                    ))}
-                  </div>
+                <div ref={serviceCarouselRef} style={styles.carouselServices}>
+                  {currentCat.services.map((service) => (
+                    <div
+                      key={service.id}
+                      style={{
+                        scrollSnapAlign: "start",
+                        flexShrink: 0,
+                        width: "280px",
+                      }}
+                    >
+                      <ServiceCard
+                        service={service}
+                        inCart={!!cart.find((s) => s.id === service.id)}
+                        onToggle={() => toggleService(service)}
+                      />
+                    </div>
+                  ))}
+                </div>
 
-                  <ScrollButton
-                    direction="right"
-                    onClick={() => handleScroll(serviceCarouselRef, "right")}
-                    aria-label="Avançar serviços"
-                  >
-                    ›
-                  </ScrollButton>
-                </CarouselWrapper>
-              </div>
-            )}
-          </ContainerServices>
-        </ContainerRight>
+                <ScrollButton
+                  direction="right"
+                  onClick={() => handleScroll(serviceCarouselRef, "right")}
+                  aria-label="Avançar serviços"
+                >
+                  ›
+                </ScrollButton>
+              </CarouselWrapper>
+            </div>
+          )}
+        </ContainerServices>
       </ContainerRight>
 
       <CartButton
