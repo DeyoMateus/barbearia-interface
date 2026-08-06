@@ -17,7 +17,7 @@ import {
   styles,
 } from "./styles";
 import { useCart } from "../../hooks/useCart.jsx";
-import { useCarousel } from "../../hooks/useCarousel.jsx";
+import { useCarousel } from "../../hooks/useCarousel.js";
 
 const BANNER_PADRAO =
   "https://placehold.co/800x400/1a1a1a/c9a84c?text=Barbearia";
