@@ -5,7 +5,7 @@ import { api } from "../../services/api.js";
 import { C } from "../../constants/theme.js";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { AnimatedBg } from "../../components/CartButton/AnimatedBg";
+
 import { ServiceCard } from "../../services/cart1/ServiceCard.jsx";
 import { GoldBtn } from "../../components/buttongold/GoldBtn.jsx";
 
@@ -204,7 +204,7 @@ export function Agendamento() {
 
     return (
         <S.AgendamentoContainer>
-            <AnimatedBg />
+
             <S.ContentWrapper>
 
                 <S.BackButton onClick={() => navigate("/app")}>
