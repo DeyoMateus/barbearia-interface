@@ -11,9 +11,13 @@ import {
   HeroSection,
   ContainerCategory,
   ContainerServices,
+  ServicesScroll,
+  CarouselWrapper,
+  ScrollButton,
   styles,
 } from "./styles";
 import { useCart } from "../../hooks/useCart.jsx";
+import { useCarousel } from "../../hooks/useCarousel.js";
 
 const BANNER_PADRAO =
   "https://placehold.co/800x400/1a1a1a/c9a84c?text=Barbearia";
@@ -36,6 +40,9 @@ export function Home() {
   const [categoriesData, setCategoriesData] = useState([]);
 
   const { cart, toggleService, total, onCheckout } = useCart();
+
+  const categoryCarousel = useCarousel();
+  const servicesCarousel = useCarousel();
 
   useEffect(() => {
     async function loadData() {
@@ -77,6 +84,21 @@ export function Home() {
 
     loadData();
   }, [barbershopSlug]);
+
+  // Reavalia as setas do carrossel de categorias assim que os dados chegam
+  useEffect(() => {
+    categoryCarousel.refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoriesData]);
+
+  // Ao trocar de categoria, volta o scroll de serviços para o início
+  // e reavalia se as setas devem aparecer
+  useEffect(() => {
+    const el = servicesCarousel.scrollRef.current;
+    if (el) el.scrollLeft = 0;
+    servicesCarousel.refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCategory]);
 
   const currentCat = categoriesData?.find((c) => c.id === activeCategory);
 
@@ -139,47 +161,101 @@ export function Home() {
           </div>
         </HeroSection>
 
-        <ContainerCategory>
-          {categoriesData.map((cat) => {
-            const active = cat.id === activeCategory;
-            const countInCat = cart.filter((s) =>
-              categoriesData
-                .find((c) => c.id === cat.id)
-                ?.services.some((x) => x.id === s.id),
-            ).length;
+        <CarouselWrapper>
+          <ScrollButton
+            type="button"
+            $direction="left"
+            $visible={categoryCarousel.canScrollLeft}
+            aria-hidden={!categoryCarousel.canScrollLeft}
+            tabIndex={categoryCarousel.canScrollLeft ? 0 : -1}
+            aria-label="Categoria anterior"
+            onClick={() => categoryCarousel.scroll("left")}
+          >
+            ‹
+          </ScrollButton>
 
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                style={styles.tabButton(active)}
-              >
-                <span>{cat.icon || "✦"}</span>
-                {cat.label}
-                {countInCat > 0 && (
-                  <span style={styles.tabBadge(active)}>{countInCat}</span>
-                )}
-              </button>
-            );
-          })}
-        </ContainerCategory>
+          <ContainerCategory ref={categoryCarousel.scrollRef}>
+            {categoriesData.map((cat) => {
+              const active = cat.id === activeCategory;
+              const countInCat = cart.filter((s) =>
+                categoriesData
+                  .find((c) => c.id === cat.id)
+                  ?.services.some((x) => x.id === s.id),
+              ).length;
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  style={styles.tabButton(active)}
+                >
+                  <span>{cat.icon || "✦"}</span>
+                  {cat.label}
+                  {countInCat > 0 && (
+                    <span style={styles.tabBadge(active)}>{countInCat}</span>
+                  )}
+                </button>
+              );
+            })}
+          </ContainerCategory>
+
+          <ScrollButton
+            type="button"
+            $direction="right"
+            $visible={categoryCarousel.canScrollRight}
+            aria-hidden={!categoryCarousel.canScrollRight}
+            tabIndex={categoryCarousel.canScrollRight ? 0 : -1}
+            aria-label="Próxima categoria"
+            onClick={() => categoryCarousel.scroll("right")}
+          >
+            ›
+          </ScrollButton>
+        </CarouselWrapper>
 
         <ContainerServices>
           {currentCat && (
-            <div style={styles.gridServices}>
+            <>
               <h3 style={styles.categoryTitle}>
                 {currentCat.icon} {currentCat.label}
               </h3>
 
-              {currentCat.services.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  inCart={!!cart.find((s) => s.id === service.id)}
-                  onToggle={() => toggleService(service)}
-                />
-              ))}
-            </div>
+              <CarouselWrapper>
+                <ScrollButton
+                  type="button"
+                  $direction="left"
+                  $visible={servicesCarousel.canScrollLeft}
+                  aria-hidden={!servicesCarousel.canScrollLeft}
+                  tabIndex={servicesCarousel.canScrollLeft ? 0 : -1}
+                  aria-label="Serviço anterior"
+                  onClick={() => servicesCarousel.scroll("left")}
+                >
+                  ‹
+                </ScrollButton>
+
+                <ServicesScroll ref={servicesCarousel.scrollRef}>
+                  {currentCat.services.map((service) => (
+                    <ServiceCard
+                      key={service.id}
+                      service={service}
+                      inCart={!!cart.find((s) => s.id === service.id)}
+                      onToggle={() => toggleService(service)}
+                    />
+                  ))}
+                </ServicesScroll>
+
+                <ScrollButton
+                  type="button"
+                  $direction="right"
+                  $visible={servicesCarousel.canScrollRight}
+                  aria-hidden={!servicesCarousel.canScrollRight}
+                  tabIndex={servicesCarousel.canScrollRight ? 0 : -1}
+                  aria-label="Próximo serviço"
+                  onClick={() => servicesCarousel.scroll("right")}
+                >
+                  ›
+                </ScrollButton>
+              </CarouselWrapper>
+            </>
           )}
         </ContainerServices>
       </ContainerRight>

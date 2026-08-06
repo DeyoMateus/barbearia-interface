@@ -77,66 +77,94 @@ export const CarouselWrapper = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
+
+  /* "Respiro" lateral reservado para as setas: o conteúdo rolável fica
+     recuado e as setas ficam encostadas na borda do wrapper, sem
+     nunca sobrepor os cards. */
+  padding: 0 30px;
+
+  @media (max-width: 640px) {
+    padding: 0 22px;
+  }
 `;
 
-/* Botão de Seta Responsivo */
+/* Botão de Seta — fino, discreto e só visível quando há conteúdo cortado */
 export const ScrollButton = styled.button`
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
-  ${(props) => (props.direction === "left" ? "left: -12px;" : "right: -12px;")}
+  ${(props) => (props.$direction === "left" ? "left: 0;" : "right: 0;")}
   z-index: 5;
-  width: 36px;
-  height: 36px;
+
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: rgba(22, 22, 20, 0.9);
-  border: 1px solid #c9a84c;
+  background: rgba(8, 8, 8, 0.55);
+  border: 1px solid rgba(201, 168, 76, 0.35);
   color: #c9a84c;
-  font-size: 16px;
+  font-size: 14px;
+  line-height: 1;
+
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  /* Só aparece (com fade suave) quando existe conteúdo prestes a ser
+     cortado pela tela naquela direção */
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  pointer-events: ${(props) => (props.$visible ? "auto" : "none")};
+  transform: translateY(-50%) scale(${(props) => (props.$visible ? 1 : 0.85)});
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 
   &:hover {
-    background: #c9a84c;
-    color: #1a0e00;
+    background: rgba(201, 168, 76, 0.14);
+    border-color: rgba(201, 168, 76, 0.7);
   }
 
   &:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: translateY(-50%) scale(0.9);
   }
 
-  /* Ajustes para telas menores */
-  @media (max-width: 768px) {
-    width: 30px;
-    height: 30px;
-    font-size: 14px;
-    ${(props) =>
-      props.direction === "left"
-        ? "left: 0px;"
-        : "right: 0px;"}/* Opcional: Se preferir esconder em celulares para priorizar o toque nativo:
-       display: none; 
-    */
+  @media (max-width: 640px) {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+  }
+`;
+
+/* Trilho horizontal para os cards de serviço da categoria selecionada */
+export const ServicesScroll = styled.div`
+  display: flex;
+  width: 100%;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  padding: 4px 2px 16px;
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  & > * {
+    flex: 0 0 auto;
+    width: 280px;
+    scroll-snap-align: start;
   }
 `;
 
 // ─── OBJETOS DE ESTILO PARA ELEMENTOS INTERNOS ───────────────────────────────
 
 export const styles = {
-  carouselServices: {
-    display: "flex",
-    gap: 16,
-    overflowX: "auto",
-    scrollSnapType: "x mandatory",
-    paddingBottom: 16,
-    WebkitOverflowScrolling: "touch",
-    scrollbarWidth: "none", // Oculta barra de rolagem no Firefox
-  },
-
   brandSub: {
     fontFamily: themeFonts?.body || "sans-serif",
     fontSize: 10,
@@ -203,19 +231,12 @@ export const styles = {
     borderRadius: "12px",
     filter: "contrast(1.05) brightness(0.9)",
   },
-  gridServices: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-    gap: 20,
-    paddingBottom: 40,
-  },
   categoryTitle: {
     fontFamily: themeFonts?.display || "serif",
     fontSize: 24,
     color: themeColors?.text || "#fff",
     margin: "0 0 16px",
     fontStyle: "italic",
-    gridColumn: "1 / -1",
   },
   tabButton: (isActive) => ({
     background: isActive
