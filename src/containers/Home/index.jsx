@@ -112,16 +112,25 @@ export function Home() {
 
   if (loading) {
     return (
-      <Container>
+      <Container style={{ background: "#080808", minHeight: "100vh" }}>
         <div
           style={{
             color: "#c9a84c",
             textAlign: "center",
             paddingTop: "30vh",
-            fontFamily: "sans-serif",
+            fontFamily: "'Montserrat', sans-serif",
           }}
         >
-          <h2>Carregando serviços...</h2>
+          <h2
+            style={{
+              fontFamily: "'Cinzel', serif",
+              letterSpacing: "2px",
+              fontSize: "20px",
+              color: "#c9a84c",
+            }}
+          >
+            Carregando serviços...
+          </h2>
         </div>
       </Container>
     );
