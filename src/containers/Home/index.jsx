@@ -144,9 +144,9 @@ export function Home() {
         <HeroSection>
           <div>
             <h2 style={styles.heroTitle}>
-              {userInfo?.name ? `Olá, ${userInfo.name.split(" ")[0]}` : " "}
+              {userInfo?.name ? `Olá, ${userInfo.name.split(" ")[0]}, ` : ""}
               <span style={{ color: "#c9a84c", fontStyle: "italic" }}>
-                Bem-vindo de volta!
+                bem-vindo de volta!
               </span>
             </h2>
             <p style={styles.heroSubtitle}>
