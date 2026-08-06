@@ -56,7 +56,7 @@ export function Login() {
       async function fetchBarbershop() {
         try {
           const response = await api.get(`/barbershops/${barbershopSlug}`, {
-            withCredentials: true,
+            withCredentials: false,
           });
 
           // CORREÇÃO: Trata se a API responder dentro de response.data.barbershop ou response.data
