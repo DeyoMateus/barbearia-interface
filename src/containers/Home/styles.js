@@ -46,8 +46,17 @@ export const HeroSection = styled.section`
 export const ContainerCategory = styled.div`
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   margin-bottom: 32px;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+
+  /* Oculta a barra de rolagem mantendo a rolagem fluida */
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 export const ContainerServices = styled.div`
@@ -151,6 +160,7 @@ export const styles = {
     display: "flex",
     alignItems: "center",
     gap: 8,
+    flexShrink: 0,
   }),
   tabBadge: (isActive) => ({
     background: isActive ? "rgba(0,0,0,0.2)" : themeColors?.gold || "#c9a84c",

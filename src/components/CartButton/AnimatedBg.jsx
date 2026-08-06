@@ -103,7 +103,6 @@ export function AnimatedBg({ style }) {
 
         const resize = () => {
             if (!rootRef.current) return;
-
             const r = rootRef.current.getBoundingClientRect();
             W = canvas.width = r.width;
             H = canvas.height = r.height;
@@ -117,6 +116,7 @@ export function AnimatedBg({ style }) {
     }, []);
 
     return (
+        /* CORRIGIDO: position: "fixed" garante que o fundo acompanhe qualquer página perfeitamente */
         <div ref={rootRef} style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none", ...style }}>
             <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
         </div>

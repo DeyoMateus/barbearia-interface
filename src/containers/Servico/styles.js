@@ -110,6 +110,7 @@ export const PageContainer = styled.div`
   margin: 0 auto;
   padding: 140px 20px 60px;
   color: #fff;
+  min-height: 100vh;
 `;
 
 export const HeaderSection = styled.div`

@@ -53,6 +53,8 @@ export function Home() {
                             withCredentials: true,
                         }
                     );
+
+                    console.log("2. Resposta bruta do Banco:", response.data);
                     setBarbershop(barbershopResponse.data);
                 }
 
