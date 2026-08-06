@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useCart } from "../../hooks/useCart.jsx";
 import { useUser } from "../../hooks/userContext.jsx";
 import { api } from "../../services/api.js";
 import { C } from "../../constants/theme.js";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
+import { AnimatedBg } from "../../components/CartButton/AnimatedBg";
 import { ServiceCard } from "../../services/cart1/ServiceCard.jsx";
 import { GoldBtn } from "../../components/buttongold/GoldBtn.jsx";
 
@@ -56,6 +56,7 @@ export function Agendamento() {
         };
     }, []);
 
+    // Carrega a lista de barbeiros
     useEffect(() => {
         async function loadBarbers() {
             try {
@@ -69,63 +70,64 @@ export function Agendamento() {
         loadBarbers();
     }, []);
 
-    useEffect(() => {
+    // Função encapsulada com useCallback para poder re-executar após conflitos
+    const fetchHorarios = useCallback(async () => {
         if (!selectedDate || !selectedBarber) {
             setAvailableTimes([]);
             return;
         }
 
-        async function fetchHorarios() {
-            try {
-                setLoadingTimes(true);
-                setSelectedTime("");
+        try {
+            setLoadingTimes(true);
 
-                const response = await api.get("/disponibilidade", {
-                    params: {
-                        barber_id: selectedBarber,
-                        date: selectedDate
-                    }
-                });
-
-                const dadosHorarios = response.data.slots || response.data;
-                let slotsTratados = [];
-
-                if (Array.isArray(dadosHorarios) && dadosHorarios.length > 0 && typeof dadosHorarios[0] === 'string') {
-                    slotsTratados = dadosHorarios.map(hora => ({
-                        time: hora,
-                        available: true,
-                        reason: ""
-                    }));
-                } else {
-                    slotsTratados = Array.isArray(dadosHorarios) ? dadosHorarios : [];
+            const response = await api.get("/disponibilidade", {
+                params: {
+                    barber_id: selectedBarber,
+                    date: selectedDate
                 }
+            });
 
-                if (selectedDate === todayStr) {
-                    slotsTratados = slotsTratados.map(slot => {
-                        if (slot.time < currentTimeStr) {
-                            return {
-                                ...slot,
-                                available: false,
-                                reason: "Este horário já passou."
-                            };
-                        }
-                        return slot;
-                    });
-                }
+            const dadosHorarios = response.data.slots || response.data;
+            let slotsTratados = [];
 
-                setAvailableTimes(slotsTratados);
-
-            } catch (error) {
-                console.error("Erro ao buscar horários da API:", error);
-                toast.error("Erro ao carregar horários disponíveis do barbeiro.");
-                setAvailableTimes([]);
-            } finally {
-                setLoadingTimes(false);
+            if (Array.isArray(dadosHorarios) && dadosHorarios.length > 0 && typeof dadosHorarios[0] === 'string') {
+                slotsTratados = dadosHorarios.map(hora => ({
+                    time: hora,
+                    available: true,
+                    reason: ""
+                }));
+            } else {
+                slotsTratados = Array.isArray(dadosHorarios) ? dadosHorarios : [];
             }
-        }
 
-        fetchHorarios();
+            if (selectedDate === todayStr) {
+                slotsTratados = slotsTratados.map(slot => {
+                    if (slot.time < currentTimeStr) {
+                        return {
+                            ...slot,
+                            available: false,
+                            reason: "Este horário já passou."
+                        };
+                    }
+                    return slot;
+                });
+            }
+
+            setAvailableTimes(slotsTratados);
+
+        } catch (error) {
+            console.error("Erro ao buscar horários da API:", error);
+            toast.error("Erro ao carregar horários disponíveis do barbeiro.");
+            setAvailableTimes([]);
+        } finally {
+            setLoadingTimes(false);
+        }
     }, [selectedDate, selectedBarber, todayStr, currentTimeStr]);
+
+    useEffect(() => {
+        setSelectedTime("");
+        fetchHorarios();
+    }, [fetchHorarios]);
 
     const handleConfirmarAgendamento = async () => {
         if (!selectedBarber) {
@@ -147,7 +149,6 @@ export function Agendamento() {
         }
 
         try {
-            // Lógica para enviar dados de cliente customizado ou do próprio usuário
             const finalClientName = isEmployee
                 ? (customClientName.trim() || userInfo.name)
                 : userInfo.name;
@@ -168,20 +169,27 @@ export function Agendamento() {
                 is_monthly_plan: isMonthlyPlan
             };
 
-            await toast.promise(
-                api.post("/agendamento", dadosAgendamento),
-                {
-                    pending: "Registrando seu agendamento...",
-                    success: "Presença confirmada com sucesso!",
-                    error: "Erro ao registrar agendamento."
-                }
-            );
+            await api.post("/agendamento", dadosAgendamento);
 
+            toast.success("Presença confirmada com sucesso!");
             clearCart();
             navigate("/");
+
         } catch (error) {
             console.error("Erro completo da API:", error);
-            toast.error("Ocorreu um erro ao salvar.");
+
+            // Captura a mensagem detalhada tratada pelo backend (Ex: Conflito de horário ou limite atingido)
+            const errorMessage = error.response?.data?.error
+                || (Array.isArray(error.response?.data?.error) ? error.response?.data?.error.join(", ") : null)
+                || "Ocorreu um erro ao salvar o agendamento.";
+
+            toast.error(errorMessage);
+
+            // 🚀 SE HOUVER ERRO DE DUPLICIDADE/CONFLITO, RECARREGA OS HORÁRIOS DISPONÍVEIS NA HORA
+            if (error.response?.status === 400) {
+                setSelectedTime("");
+                fetchHorarios();
+            }
         }
     };
 
@@ -196,6 +204,7 @@ export function Agendamento() {
 
     return (
         <S.AgendamentoContainer>
+            <AnimatedBg />
             <S.ContentWrapper>
 
                 <S.BackButton onClick={() => navigate("/app")}>
@@ -266,7 +275,7 @@ export function Agendamento() {
                     />
                 </div>
 
-                {/* PAINEL EXCLUSIVO PARA ADMINISTRADORS/BARBEIROS */}
+                {/* PAINEL EXCLUSIVO PARA ADMINISTRADORES/BARBEIROS */}
                 {isEmployee && (
                     <S.AdminPanel style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <S.AdminTextWrapper>

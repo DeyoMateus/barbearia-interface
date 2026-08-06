@@ -79,7 +79,7 @@ export const Servico = () => {
             setLoading(true);
             try {
                 // Buscamos os agendamentos do usuário
-                const response = await api.get(`/agendamento?page=2&limit=6`, { withCredentials: true });
+                const response = await api.get(`/agendamento?page=1&limit=6`, { withCredentials: true });
                 setAppointments(response.data.appointments || []);
             } catch (error) {
                 console.error("Erro ao carregar agendamentos:");
