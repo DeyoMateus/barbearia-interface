@@ -165,6 +165,9 @@ export const ServicesScroll = styled.div`
 // ─── OBJETOS DE ESTILO PARA ELEMENTOS INTERNOS ───────────────────────────────
 
 export const styles = {
+  headerBar: {
+    marginBottom: 32,
+  },
   brandSub: {
     fontFamily: themeFonts?.body || "sans-serif",
     fontSize: 10,

@@ -3,7 +3,7 @@ import { api } from "../../services/api.js";
 import { AnimatedBg } from "../../components/CartButton/AnimatedBg";
 import { CartButton } from "../../components/CartButton/CartButton";
 import { ServiceCard } from "../../services/cart1/ServiceCard.jsx";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import {
   Container,
@@ -18,6 +18,7 @@ import {
 } from "./styles";
 import { useCart } from "../../hooks/useCart.jsx";
 import { useCarousel } from "../../hooks/useCarousel.js";
+import { useUser } from "../../hooks/userContext.jsx";
 
 const BANNER_PADRAO =
   "https://placehold.co/800x400/1a1a1a/c9a84c?text=Barbearia";
@@ -32,7 +33,8 @@ const formatImageUrl = (path, fallback) => {
 
 export function Home() {
   const navigate = useNavigate();
-  const { barbershopSlug } = useParams();
+  const { userInfo } = useUser();
+  const barbershopId = userInfo?.barbershop_id;
 
   const [activeCategory, setActiveCategory] = useState("");
   const [loading, setLoading] = useState(true);
@@ -47,12 +49,12 @@ export function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        // 1. Busca os dados da Barbearia pelo Slug
+        // 1. Busca os dados da Barbearia pelo ID do usuário logado
         // withCredentials: true — a Home exige login, então o cookie de
         // sessão (JWT) precisa ser enviado nessa requisição.
-        if (barbershopSlug) {
+        if (barbershopId) {
           const barbershopResponse = await api.get(
-            `/barbershops/${barbershopSlug}`,
+            `/barbershops/${barbershopId}`,
             {
               withCredentials: true,
             },
@@ -85,7 +87,7 @@ export function Home() {
     }
 
     loadData();
-  }, [barbershopSlug]);
+  }, [barbershopId]);
 
   // Reavalia as setas do carrossel de categorias assim que os dados chegam
   useEffect(() => {
@@ -129,7 +131,7 @@ export function Home() {
       <AnimatedBg />
 
       <ContainerRight>
-        <header>
+        <header style={styles.headerBar}>
           <div>
             <h1 style={styles.brandTitle}>
               {barbershop?.name || "Premium Barber"}
