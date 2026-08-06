@@ -49,14 +49,14 @@ export function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        // 1. Busca os dados da Barbearia pelo ID do usuário logado
         // withCredentials: true — a Home exige login, então o cookie de
         // sessão (JWT) precisa ser enviado nessa requisição.
-        if (barbershopId) {
+        // 1. Busca os dados da Barbearia pelo Slug
+        if (barbershopSlug) {
           const barbershopResponse = await api.get(
-            `/barbershops/${barbershopId}`,
+            `/barbershops/${barbershopSlug}`,
             {
-              withCredentials: true,
+              withCredentials: false,
             },
           );
           setBarbershop(barbershopResponse.data);
@@ -87,7 +87,7 @@ export function Home() {
     }
 
     loadData();
-  }, [barbershopId]);
+  }, [barbershopId, barbershopSlug]);
 
   // Reavalia as setas do carrossel de categorias assim que os dados chegam
   useEffect(() => {
@@ -131,7 +131,7 @@ export function Home() {
       <AnimatedBg />
 
       <ContainerRight>
-        <header style={styles.headerBar}>
+        <header>
           <div>
             <h1 style={styles.brandTitle}>
               {barbershop?.name || "Premium Barber"}
