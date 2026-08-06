@@ -141,13 +141,13 @@ export function Home() {
           <span style={styles.clientBadge}> </span>
         </header>
 
+        {/*Texto de Boas vindas*/}
         <HeroSection>
           <div>
             <h2 style={styles.heroTitle}>
-              <span style={styles.clientBadge}>
-                {userInfo?.name
-                  ? `Olá, ${userInfo.name.split(" ")[0]}`
-                  : "Bem-vindo de volta"}
+              {userInfo?.name ? `Olá, ${userInfo.name.split(" ")[0]}` : ""}
+              <span style={{ color: "#c9a84c", fontStyle: "italic" }}>
+                Bem-vindo de volta!
               </span>
             </h2>
             <p style={styles.heroSubtitle}>
