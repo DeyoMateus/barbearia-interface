@@ -1,15 +1,6 @@
 // src/containers/Servico/styles.js
 import styled from "styled-components";
 
-export const CanvasElement = styled.canvas`
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-`;
-
 export const CardBlock = styled.div`
   background: rgba(10, 9, 7, 0.72);
   border: 1px solid rgba(201, 168, 76, 0.1);
