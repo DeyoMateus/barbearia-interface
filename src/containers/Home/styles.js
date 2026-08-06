@@ -45,6 +45,7 @@ export const HeroSection = styled.section`
 /* Carrossel de Categorias */
 export const ContainerCategory = styled.div`
   display: flex;
+  width: 100%; /* ADICIONE ESTA LINHA */
   gap: 12px;
   flex-wrap: nowrap;
   overflow-x: auto;
