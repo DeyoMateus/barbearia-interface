@@ -12,15 +12,16 @@ import {
   HeroSection,
   ContainerCategory,
   ContainerServices,
+  CarouselWrapper,
+  ScrollButton,
   styles,
 } from "./styles";
 import { useCart } from "../../hooks/useCart.jsx";
 
 const BANNER_PADRAO =
   "https://placehold.co/800x400/1a1a1a/c9a84c?text=Barbearia";
-const LOGO_PADRAO = "https://placehold.co/200x200/1a1a1a/c9a84c?text=Logo";
 
-const formatImageUrl = (path, fallback) => {
+const formatImageUrl = (path, fallback = null) => {
   if (!path) return fallback;
   if (path.startsWith("http")) return path;
   const baseURL = api.defaults.baseURL || "http://localhost:3333";
@@ -37,6 +38,21 @@ export function Home() {
   const [categoriesData, setCategoriesData] = useState([]);
 
   const { cart, toggleService, total, onCheckout } = useCart();
+  3;
+
+  const categoryCarouselRef = useRef(null);
+  const serviceCarouselRef = useRef(null);
+
+  // 2. Função genérica de rolagem
+  const handleScroll = (ref, direction) => {
+    if (ref.current) {
+      const scrollAmount = direction === "left" ? -260 : 260;
+      ref.current.scrollBy({
+        left: scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -49,7 +65,6 @@ export function Home() {
             { withCredentials: true },
           );
 
-          // CORREÇÃO: Garante o resgate dos dados independente de vir direto ou dentro de response.data.barbershop
           const data =
             barbershopResponse.data?.barbershop || barbershopResponse.data;
           setBarbershop(data);
@@ -83,20 +98,18 @@ export function Home() {
 
   const currentCat = categoriesData?.find((c) => c.id === activeCategory);
 
-  // CORREÇÃO: Fallbacks flexíveis para diferentes nomes de campos do BD (home_banner_url / banner_url / banner)
   const bannerPath =
     barbershop?.home_banner_url || barbershop?.banner_url || barbershop?.banner;
   const bannerUrl = formatImageUrl(bannerPath, BANNER_PADRAO);
 
-  // CORREÇÃO: Adicionada a busca formatada da Logo
-  const logoPath = barbershop?.logo_url || barbershop?.logo;
-  const logoUrl = formatImageUrl(logoPath, LOGO_PADRAO);
-
   if (loading) {
     return (
       <Container>
+        <AnimatedBg />
         <div
           style={{
+            position: "relative",
+            zIndex: 2,
             color: "#c9a84c",
             textAlign: "center",
             paddingTop: "30vh",
@@ -110,11 +123,10 @@ export function Home() {
   }
 
   return (
-    <Container style={styles.container}>
+    <Container>
       <AnimatedBg />
 
       <ContainerRight>
-        {/* Header ajustado com a renderização da Logo da Barbearia */}
         <header
           style={{
             display: "flex",
@@ -123,17 +135,6 @@ export function Home() {
             marginBottom: "20px",
           }}
         >
-          <img
-            src={logoUrl}
-            alt={barbershop?.name || "Logo Barbearia"}
-            style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: "1px solid #c9a84c",
-            }}
-          />
           <div>
             <h1 style={styles.brandTitle}>
               {barbershop?.name || "Premium Barber"}
@@ -169,49 +170,90 @@ export function Home() {
           </div>
         </HeroSection>
 
-        <ContainerCategory>
-          {categoriesData.map((cat) => {
-            const active = cat.id === activeCategory;
-            const countInCat = cart.filter((s) =>
-              categoriesData
-                .find((c) => c.id === cat.id)
-                ?.services.some((x) => x.id === s.id),
-            ).length;
+        <ContainerRight>
+          {/* CARROSSEL DE CATEGORIAS COM SETAS */}
+          <CarouselWrapper>
+            <ScrollButton
+              direction="left"
+              onClick={() => handleScroll(categoryCarouselRef, "left")}
+              aria-label="Voltar categorias"
+            >
+              ‹
+            </ScrollButton>
 
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                style={styles.tabButton(active)}
-              >
-                <span>{cat.icon || "✦"}</span>
-                {cat.label}
-                {countInCat > 0 && (
-                  <span style={styles.tabBadge(active)}>{countInCat}</span>
-                )}
-              </button>
-            );
-          })}
-        </ContainerCategory>
+            <ContainerCategory ref={categoryCarouselRef}>
+              {categoriesData.map((cat) => {
+                const active = cat.id === activeCategory;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    style={styles.tabButton(active)}
+                  >
+                    <span>{cat.icon || "✦"}</span>
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </ContainerCategory>
 
-        <ContainerServices>
-          {currentCat && (
-            <div style={styles.gridServices}>
-              <h3 style={styles.categoryTitle}>
-                {currentCat.icon} {currentCat.label}
-              </h3>
+            <ScrollButton
+              direction="right"
+              onClick={() => handleScroll(categoryCarouselRef, "right")}
+              aria-label="Avançar categorias"
+            >
+              ›
+            </ScrollButton>
+          </CarouselWrapper>
 
-              {currentCat.services.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  inCart={!!cart.find((s) => s.id === service.id)}
-                  onToggle={() => toggleService(service)}
-                />
-              ))}
-            </div>
-          )}
-        </ContainerServices>
+          {/* CARROSSEL DE SERVIÇOS COM SETAS */}
+          <ContainerServices>
+            {currentCat && (
+              <div>
+                <h3 style={styles.categoryTitle}>
+                  {currentCat.icon} {currentCat.label}
+                </h3>
+
+                <CarouselWrapper>
+                  <ScrollButton
+                    direction="left"
+                    onClick={() => handleScroll(serviceCarouselRef, "left")}
+                    aria-label="Voltar serviços"
+                  >
+                    ‹
+                  </ScrollButton>
+
+                  <div ref={serviceCarouselRef} style={styles.carouselServices}>
+                    {currentCat.services.map((service) => (
+                      <div
+                        key={service.id}
+                        style={{
+                          scrollSnapAlign: "start",
+                          flexShrink: 0,
+                          width: "280px",
+                        }}
+                      >
+                        <ServiceCard
+                          service={service}
+                          inCart={!!cart.find((s) => s.id === service.id)}
+                          onToggle={() => toggleService(service)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <ScrollButton
+                    direction="right"
+                    onClick={() => handleScroll(serviceCarouselRef, "right")}
+                    aria-label="Avançar serviços"
+                  >
+                    ›
+                  </ScrollButton>
+                </CarouselWrapper>
+              </div>
+            )}
+          </ContainerServices>
+        </ContainerRight>
       </ContainerRight>
 
       <CartButton
