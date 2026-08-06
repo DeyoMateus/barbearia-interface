@@ -140,7 +140,6 @@ export function Home() {
           </div>
         </header>
 
-        {/*Texto de Boas vindas*/}
         <HeroSection>
           <div>
             <h2 style={styles.heroTitle}>
