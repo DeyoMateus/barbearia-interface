@@ -138,15 +138,16 @@ export function Home() {
               {barbershop?.name || "Premium Barber"}
             </h1>
           </div>
-          <span style={styles.clientBadge}>Olá, Cliente</span>
+          <span style={styles.clientBadge}> </span>
         </header>
 
         <HeroSection>
           <div>
             <h2 style={styles.heroTitle}>
-              Sua presença merece o{" "}
-              <span style={{ color: "#c9a84c", fontStyle: "italic" }}>
-                alto padrão
+              <span style={styles.clientBadge}>
+                {userInfo?.name
+                  ? `Olá, ${userInfo.name.split(" ")[0]}`
+                  : "Bem-vindo de volta"}
               </span>
             </h2>
             <p style={styles.heroSubtitle}>
