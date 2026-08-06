@@ -4,6 +4,7 @@ import { AnimatedBg } from "../../components/CartButton/AnimatedBg";
 import { CartButton } from "../../components/CartButton/CartButton";
 import { ServiceCard } from "../../services/cart1/ServiceCard.jsx";
 import { useNavigate } from "react-router-dom";
+import { obterBarbershopSlug } from "../../utils/barbershopSlug.js";
 
 import {
   Container,
@@ -35,7 +36,7 @@ export function Home() {
   const navigate = useNavigate();
   const { userInfo } = useUser();
   const barbershopId = userInfo?.barbershop_id;
-
+  const barbershopSlug = obterBarbershopSlug();
   const [activeCategory, setActiveCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [barbershop, setBarbershop] = useState(null);
