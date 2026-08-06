@@ -130,10 +130,16 @@ export function Login() {
   const onSubmit = async (data) => {
     try {
       const { data: userData } = await toast.promise(
-        api.post("/sessions", {
-          email: data.email.trim(),
-          password: data.password,
-        }),
+        api.post(
+          "/sessions",
+          {
+            email: data.email.trim(),
+            password: data.password,
+          },
+          {
+            withCredentials: true,
+          },
+        ),
         {
           pending: "Verificando seus dados",
           success: "Seja bem vindo(a)!👌",

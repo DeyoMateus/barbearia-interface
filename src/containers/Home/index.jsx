@@ -80,7 +80,7 @@ export function Home() {
 
         // 2. Busca de Categorias
         const response = await api.get("/categories/service", {
-          withCredentials: false,
+          withCredentials: true,
         });
 
         // CORREÇÃO: Garante a extração segura do array de categorias
