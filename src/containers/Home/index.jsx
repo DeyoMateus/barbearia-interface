@@ -48,19 +48,21 @@ export function Home() {
     async function loadData() {
       try {
         // 1. Busca os dados da Barbearia pelo Slug
+        // withCredentials: true — a Home exige login, então o cookie de
+        // sessão (JWT) precisa ser enviado nessa requisição.
         if (barbershopSlug) {
           const barbershopResponse = await api.get(
             `/barbershops/${barbershopSlug}`,
             {
-              withCredentials: false,
+              withCredentials: true,
             },
           );
           setBarbershop(barbershopResponse.data);
         }
 
-        // 2. Busca as categorias de serviço
+        // 2. Busca as categorias de serviço (também exige sessão autenticada)
         const response = await api.get("/categories/service", {
-          withCredentials: false,
+          withCredentials: true,
         });
 
         const categoriesFromApi = response.data.categories.map((cat) => ({
