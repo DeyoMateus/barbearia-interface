@@ -29,8 +29,14 @@ const LOGO_PADRAO = "https://placehold.co/200x200/1a1a1a/c9a84c?text=Logo";
 const formatImageUrl = (path, fallback) => {
   if (!path) return fallback;
   if (path.startsWith("http")) return path;
-  const baseURL = api.defaults.baseURL || "http://localhost:3333";
-  return `${baseURL}/${path.replace(/^\//, "")}`;
+
+  // Pega o baseURL do axios ou usa a origem atual / fallback seguro
+  const baseURL =
+    api.defaults.baseURL && !api.defaults.baseURL.includes("localhost")
+      ? api.defaults.baseURL
+      : "";
+
+  return `${baseURL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
 };
 
 export function ResetPassword() {
