@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import api from "../services/api"; // Ajuste o caminho da sua instância do Axios
+import { api } from "../../services/api.js";
 
 export function Register() {
   const { barbershopSlug } = useParams();
