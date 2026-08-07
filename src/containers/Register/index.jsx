@@ -5,7 +5,7 @@ import * as yup from "yup";
 import { api } from "../../services/api.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { salvarBarbershopSlug } from "../../utils/barbershopSlug.js";
-import { Eye, EyeOff } from "lucide-react"; // Importação dos ícones do olhinho
+import { Eye, EyeOff } from "lucide-react";
 
 // helpers importados das pastas para animação
 import { createTools, renderFrame } from "../../utils/canvasHelpers";
@@ -149,13 +149,14 @@ export function Register() {
         <CardTopBorder />
         <CardBottomBorder />
 
-        {/*<BrandArea>
-                    <span>✦ ✦ ✦</span>
-                    <img src={barbershopData?.logo_url || DefaultLogo}
-                        alt={barbershopData?.name || "Barbearia"}
-                        className="new-logo" />
-                    <p>Criar Conta</p>
-                </BrandArea>*/}
+        <BrandArea>
+          <img
+            src={barbershopData?.logo_url || DefaultLogo}
+            alt={barbershopData?.name || "Barbearia"}
+            className="new-logo"
+          />
+          <p>Criar Conta</p>
+        </BrandArea>
         <Divider />
 
         <Form onSubmit={handleSubmit(onSubmit)} noValidate>
