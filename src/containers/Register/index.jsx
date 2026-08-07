@@ -248,6 +248,7 @@ export function Register() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                autoComplete="new-password"
                 {...register("password")}
                 style={{ width: "100%", paddingRight: "40px" }}
               />
