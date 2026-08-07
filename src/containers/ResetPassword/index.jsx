@@ -1,13 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { api } from "../../services/api.js";
 import { toast } from "react-toastify";
-import { salvarBarbershopSlug } from "../../utils/barbershopSlug.js";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 
-// Helpers e componentes visuais idênticos aos demais fluxos de autenticação
+// Helpers e componentes visuais
 import { createTools, renderFrame } from "../../utils/canvasHelpers";
 import {
   Container,
@@ -31,7 +30,10 @@ export function ResetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // O token geralmente vem via query param na URL (ex: ?token=xxx&email=xxx)
+  // Dados do Tenant (Barbearia)
+  const [barbershopData, setBarbershopData] = useState(null);
+
+  // Parâmetros recebidos da URL (ex: ?token=xxx&email=xxx)
   const tokenFromUrl = searchParams.get("token") || "";
   const emailFromUrl = searchParams.get("email") || "";
 
@@ -40,6 +42,7 @@ export function ResetPassword() {
   const toolsRef = useRef(createTools(42));
   const rafRef = useRef(null);
 
+  // Schema de Validação (Mínimo 8 caracteres na senha)
   const schema = yup
     .object({
       email: yup
@@ -49,7 +52,7 @@ export function ResetPassword() {
       token: yup.string().required("O token de recuperação é obrigatório"),
       new_password: yup
         .string()
-        .min(6, "A nova senha deve ter pelo menos 6 caracteres")
+        .min(8, "A nova senha deve ter pelo menos 8 caracteres")
         .required("A nova senha é obrigatória"),
     })
     .required();
@@ -66,7 +69,31 @@ export function ResetPassword() {
     },
   });
 
-  // Animação de fundo canvas
+  // 1. Busca os dados da barbearia (Logo e Nome) de forma segura
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadBarbershopData() {
+      if (!barbershopSlug) return;
+
+      try {
+        const response = await api.get(`/barbershops/slug/${barbershopSlug}`);
+        if (isMounted) {
+          setBarbershopData(response.data);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar marca da barbearia:", error);
+      }
+    }
+
+    loadBarbershopData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [barbershopSlug]);
+
+  // 2. Animação de fundo no Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -97,6 +124,7 @@ export function ResetPassword() {
     };
   }, []);
 
+  // 3. Submissão do Formulário
   const onSubmit = async (data) => {
     try {
       await toast.promise(
@@ -114,9 +142,9 @@ export function ResetPassword() {
 
       setTimeout(() => {
         navigate(`/${barbershopSlug}/login`);
-      }, 3000);
+      }, 2500);
     } catch (error) {
-      console.error("Erro no reset-password:");
+      console.error("[RESET PASSWORD ERROR]:", error);
     }
   };
 
@@ -129,17 +157,30 @@ export function ResetPassword() {
         <CardBottomBorder />
 
         <BrandArea>
-          src={barbershopData?.logo_url || DefaultLogo}
-          alt={barbershopData?.name || "Barbearia"}
-          className="new-logo"
+          <img
+            src={
+              barbershopData?.avatar_url || barbershopData?.logo || LOGO_PADRAO
+            }
+            alt={barbershopData?.name || "Barbearia"}
+            className="new-logo"
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              objectFit: "cover",
+            }}
+          />
           <p
             style={{
               marginTop: "10px",
               fontSize: "11px",
               letterSpacing: "2px",
+              fontWeight: "bold",
             }}
           >
-            Nova Senha
+            {barbershopData?.name
+              ? barbershopData.name.toUpperCase()
+              : "NOVA SENHA"}
           </p>
         </BrandArea>
 
@@ -170,7 +211,7 @@ export function ResetPassword() {
             <label>Nova Senha</label>
             <input
               type="password"
-              placeholder="••••••••"
+              placeholder="Mínimo de 8 caracteres"
               {...register("new_password")}
             />
             <p>{errors?.new_password?.message}</p>
