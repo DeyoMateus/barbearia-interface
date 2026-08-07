@@ -5,6 +5,7 @@ import * as yup from "yup";
 import { api } from "../../services/api.js";
 import { toast } from "react-toastify";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 // Helpers e componentes visuais
 import { createTools, renderFrame } from "../../utils/canvasHelpers";
@@ -25,13 +26,24 @@ import { Button } from "../../components/Button";
 
 const LOGO_PADRAO = "https://placehold.co/200x200/1a1a1a/c9a84c?text=Logo";
 
+const formatImageUrl = (path, fallback) => {
+  if (!path) return fallback;
+  if (path.startsWith("http")) return path;
+  const baseURL = api.defaults.baseURL || "http://localhost:3333";
+  return `${baseURL}/${path.replace(/^\//, "")}`;
+};
+
 export function ResetPassword() {
   const { barbershopSlug } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Dados do Tenant (Barbearia)
+  // Estados para controlar a visibilidade da Senha
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Dados e carregamento da Barbearia (Logo e Nome)
   const [barbershopData, setBarbershopData] = useState(null);
+  const [loadingBarbershop, setLoadingBarbershop] = useState(true);
 
   // Parâmetros recebidos da URL (ex: ?token=xxx&email=xxx)
   const tokenFromUrl = searchParams.get("token") || "";
@@ -69,20 +81,29 @@ export function ResetPassword() {
     },
   });
 
-  // 1. Busca os dados da barbearia (Logo e Nome) de forma segura
+  // 1. Busca os dados da barbearia (Logo e Nome) corretamente do banco
   useEffect(() => {
     let isMounted = true;
 
     async function loadBarbershopData() {
-      if (!barbershopSlug) return;
+      if (!barbershopSlug) {
+        setLoadingBarbershop(false);
+        return;
+      }
 
       try {
-        const response = await api.get(`/barbershops/slug/${barbershopSlug}`);
+        const response = await api.get(`/barbershops/${barbershopSlug}`, {
+          withCredentials: false,
+        });
         if (isMounted) {
           setBarbershopData(response.data);
         }
       } catch (error) {
         console.error("Erro ao carregar marca da barbearia:", error);
+      } finally {
+        if (isMounted) {
+          setLoadingBarbershop(false);
+        }
       }
     }
 
@@ -148,6 +169,11 @@ export function ResetPassword() {
     }
   };
 
+  const logoUrl = formatImageUrl(
+    barbershopData?.logo_url || barbershopData?.logo,
+    LOGO_PADRAO,
+  );
+
   return (
     <Container ref={containerRef}>
       <CanvasBackground ref={canvasRef} />
@@ -157,19 +183,28 @@ export function ResetPassword() {
         <CardBottomBorder />
 
         <BrandArea>
-          <img
-            src={
-              barbershopData?.avatar_url || barbershopData?.logo || LOGO_PADRAO
-            }
-            alt={barbershopData?.name || "Barbearia"}
-            className="new-logo"
-            style={{
-              width: "80px",
-              height: "80px",
-              borderRadius: "50%",
-              objectFit: "cover",
-            }}
-          />
+          {loadingBarbershop ? (
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.05)",
+              }}
+            />
+          ) : (
+            <img
+              src={logoUrl}
+              alt={barbershopData?.name || "Barbearia"}
+              className="new-logo"
+              style={{
+                width: "80px",
+                height: "80px",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
+          )}
           <p
             style={{
               marginTop: "10px",
@@ -209,11 +244,37 @@ export function ResetPassword() {
 
           <InputContainer>
             <label>Nova Senha</label>
-            <input
-              type="password"
-              placeholder="Mínimo de 8 caracteres"
-              {...register("new_password")}
-            />
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Mínimo de 8 caracteres"
+                autoComplete="new-password"
+                {...register("new_password")}
+                style={{ width: "100%", paddingRight: "40px" }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: "12px",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  color: "#888",
+                }}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             <p>{errors?.new_password?.message}</p>
           </InputContainer>
 
