@@ -27,6 +27,8 @@ import {
 import { Button } from "../../components/Button";
 import { toast } from "react-toastify";
 
+const LOGO_PADRAO = "https://placehold.co/200x200/1a1a1a/c9a84c?text=Logo";
+
 export function Register() {
   const { barbershopSlug } = useParams();
   const navigate = useNavigate();
