@@ -160,6 +160,10 @@ export function Home() {
             <p style={styles.heroSubtitle}>
               Escolha os serviços desejados abaixo.
             </p>
+            <p style={styles.heroSubtitle}>
+              Para serviços que envolvem o uso de produtos, o valor pode variar
+              de acordo com o tamanho do cabelo.
+            </p>
             <div style={styles.heroDivider} />
           </div>
 
