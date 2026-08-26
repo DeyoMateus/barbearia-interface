@@ -9,6 +9,12 @@ export const Container = styled.div`
   border-radius: 8px;
   border: 1px solid #2d2d2d;
   font-family: sans-serif;
+  box-sizing: border-box;
+
+  @media (max-width: 480px) {
+    margin: 16px auto;
+    padding: 16px;
+  }
 `;
 
 export const Title = styled.h3`
@@ -25,7 +31,7 @@ export const TabsWrapper = styled.div`
 `;
 
 export const TabButton = styled.button`
-  flex: 1;
+  flex: 1 1 140px;
   padding: 12px;
   background: ${(props) => (props.$active ? "#c9a84c" : "#111")};
   color: ${(props) => (props.$active ? "#111" : "#fff")};
@@ -34,6 +40,12 @@ export const TabButton = styled.button`
   cursor: pointer;
   font-weight: bold;
   transition: 0.2s;
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    padding: 10px 6px;
+    flex: 1 1 100%;
+  }
 `;
 
 export const Message = styled.div`
@@ -43,7 +55,8 @@ export const Message = styled.div`
   text-align: center;
   font-weight: bold;
   color: #fff;
-  background-color: ${(props) => (props.$type === "sucesso" ? "#1b4332" : "#641111")};
+  background-color: ${(props) =>
+    props.$type === "sucesso" ? "#1b4332" : "#641111"};
 `;
 
 export const Form = styled.form`

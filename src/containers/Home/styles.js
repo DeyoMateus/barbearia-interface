@@ -35,6 +35,12 @@ export const HeroSection = styled.section`
   margin-bottom: 32px;
   backdrop-filter: blur(12px);
 
+  @media (max-width: 380px) {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 16px;
+  }
+
   @media (min-width: 992px) {
     grid-template-columns: repeat(2, 1fr);
     gap: 48px;
@@ -71,24 +77,21 @@ export const ContainerServices = styled.div`
   width: 100%;
 `;
 
-/* Container pai para posicionar as setas sobre o carrossel */
 export const CarouselWrapper = styled.div`
   position: relative;
   width: 100%;
   display: flex;
   align-items: center;
-
-  /* "Respiro" lateral reservado para as setas: o conteúdo rolável fica
-     recuado e as setas ficam encostadas na borda do wrapper, sem
-     nunca sobrepor os cards. */
-  padding: 0 30px;
+  padding: 0 34px;
 
   @media (max-width: 640px) {
-    padding: 0 22px;
+    padding: 0 30px;
+  }
+  @media (max-width: 380px) {
+    padding: 0 26px;
   }
 `;
 
-/* Botão de Seta — fino, discreto e só visível quando há conteúdo cortado */
 export const ScrollButton = styled.button`
   position: absolute;
   top: 50%;
@@ -111,8 +114,6 @@ export const ScrollButton = styled.button`
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 
-  /* Só aparece (com fade suave) quando existe conteúdo prestes a ser
-     cortado pela tela naquela direção */
   opacity: ${(props) => (props.$visible ? 1 : 0)};
   pointer-events: ${(props) => (props.$visible ? "auto" : "none")};
   transform: translateY(-50%) scale(${(props) => (props.$visible ? 1 : 0.85)});
@@ -127,7 +128,6 @@ export const ScrollButton = styled.button`
     background: rgba(201, 168, 76, 0.14);
     border-color: rgba(201, 168, 76, 0.7);
   }
-
   &:active {
     transform: translateY(-50%) scale(0.9);
   }
@@ -137,13 +137,18 @@ export const ScrollButton = styled.button`
     height: 26px;
     font-size: 12px;
   }
+  @media (max-width: 380px) {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
 `;
 
 /* Trilho horizontal para os cards de serviço da categoria selecionada */
 export const ServicesScroll = styled.div`
   display: flex;
   width: 100%;
-  gap: 20px;
+  gap: 16px;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
@@ -156,9 +161,18 @@ export const ServicesScroll = styled.div`
   }
 
   & > * {
-    flex: 0 0 auto;
-    width: 280px;
-    scroll-snap-align: start;
+    flex: 0 0 100%; /* ocupa 100% da largura do trilho */
+    max-width: 340px; /* mas não fica gigante em telas largas */
+    scroll-snap-align: center;
+    scroll-snap-stop: always; /* impede "pular" mais de um card no swipe rápido */
+  }
+
+  @media (min-width: 640px) {
+    & > * {
+      flex: 0 0 auto; /* em telas maiores volta ao tamanho fixo normal */
+      width: 280px;
+      max-width: none;
+    }
   }
 `;
 
@@ -182,6 +196,7 @@ export const styles = {
     color: themeColors?.text || "#fff",
     margin: "4px 0 0",
     fontWeight: 700,
+    marginBottom: "13px",
   },
   clientBadge: {
     fontFamily: themeFonts?.body || "sans-serif",

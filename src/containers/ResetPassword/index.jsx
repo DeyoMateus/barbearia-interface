@@ -105,7 +105,7 @@ export function ResetPassword() {
           setBarbershopData(response.data);
         }
       } catch (error) {
-        console.error("Erro ao carregar marca da barbearia:", error);
+        console.error("Erro ao carregar marca da barbearia:");
       } finally {
         if (isMounted) {
           setLoadingBarbershop(false);
@@ -171,7 +171,7 @@ export function ResetPassword() {
         navigate(`/${barbershopSlug}/login`);
       }, 2500);
     } catch (error) {
-      console.error("[RESET PASSWORD ERROR]:", error);
+      console.error("[RESET PASSWORD ERROR]:");
     }
   };
 

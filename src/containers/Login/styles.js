@@ -34,8 +34,6 @@ export const RightContainer = styled.div`
   border: 1px solid rgba(184, 144, 56, 0.35);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-
-  /* Padding responsivo: diminui um pouco em telas menores para economizar espaço */
   padding: 40px 30px;
   width: 100%;
   max-width: 340px;
@@ -47,6 +45,10 @@ export const RightContainer = styled.div`
   z-index: 2;
   border-radius: 12px;
   text-align: center;
+
+  @media (max-width: 380px) {
+    padding: 28px 18px;
+  }
 `;
 
 export const BrandArea = styled.div`

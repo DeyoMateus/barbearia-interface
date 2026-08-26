@@ -4,6 +4,10 @@ export const Container = styled.div`
   min-height: 100vh;
   background: #0a0a0a;
   padding: 100px 20px;
+
+  @media (max-width: 480px) {
+    padding: 70px 14px;
+  }
 `;
 
 export const LoadingContainer = styled.div`

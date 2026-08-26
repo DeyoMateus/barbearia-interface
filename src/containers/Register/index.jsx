@@ -65,7 +65,7 @@ export function Register() {
           });
           setBarbershopData(response.data);
         } catch (error) {
-          console.error("Erro ao buscar dados da barbearia:", error);
+          console.error("Erro ao buscar dados da barbearia:");
         } finally {
           setLoadingBarbershop(false);
         }

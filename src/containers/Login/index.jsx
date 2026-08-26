@@ -5,7 +5,7 @@ import * as yup from "yup";
 import { api } from "../../services/api.js";
 import { toast } from "react-toastify";
 import { useUser } from "../../hooks/userContext.jsx";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { salvarBarbershopSlug } from "../../utils/barbershopSlug.js";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -38,6 +38,7 @@ const formatImageUrl = (path, fallback) => {
 export function Login() {
   const { barbershopSlug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { putUserData } = useUser();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -60,7 +61,7 @@ export function Login() {
           });
           setBarbershopData(response.data);
         } catch (error) {
-          console.error("Erro ao buscar dados da barbearia:", error);
+          console.error("Erro ao buscar dados da barbearia:");
         } finally {
           setLoadingBarbershop(false);
         }
@@ -140,15 +141,24 @@ export function Login() {
 
       putUserData(userData);
 
+      // Captura pra onde o usuário estava indo antes de ser barrado
+      const destino = location.state?.from || "/app";
+      const pendingSelection = location.state?.pendingSelection;
+
       setTimeout(() => {
         if (!userData.privacy_accepted_at) {
-          navigate(`/${barbershopSlug}/aceitar-politica`);
+          navigate(`/${barbershopSlug}/aceitar-politica`, {
+            state: { from: destino, pendingSelection },
+          });
         } else {
-          navigate("/app");
+          navigate(destino, {
+            replace: true,
+            state: pendingSelection ? { pendingSelection } : undefined,
+          });
         }
       }, 1500);
     } catch (error) {
-      console.error("Erro no login:", error);
+      console.error("Erro no login:");
     }
   };
 

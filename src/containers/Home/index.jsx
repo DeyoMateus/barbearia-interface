@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../services/api.js";
 import { AnimatedBg } from "../../components/CartButton/AnimatedBg";
 import { CartButton } from "../../components/CartButton/CartButton";
 import { ServiceCard } from "../../services/cart1/ServiceCard.jsx";
-import { useNavigate } from "react-router-dom";
 import { obterBarbershopSlug } from "../../utils/barbershopSlug.js";
+import { useCart } from "../../hooks/useCart.jsx";
+import { useCarousel } from "../../hooks/useCarousel.js";
+import { useUser } from "../../hooks/userContext.jsx";
 
 import {
   Container,
@@ -17,14 +20,10 @@ import {
   ScrollButton,
   styles,
 } from "./styles";
-import { useCart } from "../../hooks/useCart.jsx";
-import { useCarousel } from "../../hooks/useCarousel.js";
-import { useUser } from "../../hooks/userContext.jsx";
 
 const BANNER_PADRAO =
   "https://placehold.co/800x400/1a1a1a/c9a84c?text=Barbearia";
 
-// Helper para tratar URLs relativas ou absolutas
 const formatImageUrl = (path, fallback) => {
   if (!path) return fallback;
   if (path.startsWith("http")) return path;
@@ -35,8 +34,8 @@ const formatImageUrl = (path, fallback) => {
 export function Home() {
   const navigate = useNavigate();
   const { userInfo } = useUser();
-  const barbershopId = userInfo?.barbershop_id;
   const barbershopSlug = obterBarbershopSlug();
+
   const [activeCategory, setActiveCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [barbershop, setBarbershop] = useState(null);
@@ -48,32 +47,35 @@ export function Home() {
   const servicesCarousel = useCarousel();
 
   useEffect(() => {
+    // 1. Cria o controlador para interceptar requisições
+    const controller = new AbortController();
+
     async function loadData() {
       try {
-        // withCredentials: true — a Home exige login, então o cookie de
-        // sessão (JWT) precisa ser enviado nessa requisição.
-        // 1. Busca os dados da Barbearia pelo Slug
         if (barbershopSlug) {
           const barbershopResponse = await api.get(
             `/barbershops/${barbershopSlug}`,
             {
               withCredentials: false,
+              signal: controller.signal, // 2. Adiciona o sinal aqui
             },
           );
           setBarbershop(barbershopResponse.data);
         }
 
-        // 2. Busca as categorias de serviço (também exige sessão autenticada)
         const response = await api.get("/categories/service", {
           withCredentials: true,
+          signal: controller.signal, // 3. Adiciona o sinal aqui também
         });
 
-        const categoriesFromApi = response.data.categories.map((cat) => ({
-          id: cat.id,
-          label: cat.name,
-          icon: cat.icon,
-          services: cat.services || [],
-        }));
+        const categoriesFromApi = (response.data?.categories || []).map(
+          (cat) => ({
+            id: cat.id,
+            label: cat.name,
+            icon: cat.icon,
+            services: cat.services || [],
+          }),
+        );
 
         setCategoriesData(categoriesFromApi);
 
@@ -81,23 +83,40 @@ export function Home() {
           setActiveCategory(categoriesFromApi[0].id);
         }
       } catch (err) {
-        console.error("Erro ao buscar dados do banco:", err);
+        // Se a requisição foi cancelada OU se deu 404 no momento de saída/mudança de rota
+        if (
+          err.name === "CanceledError" ||
+          err.code === "ERR_CANCELED" ||
+          err.response?.status === 404
+        ) {
+          console.log(
+            "Requisição ignorada (componente desmontado ou saindo da página).",
+          );
+          return;
+        }
+
+        console.error("Erro ao buscar dados do banco:");
       } finally {
-        setLoading(false);
+        // 5. Só altera o state de loading se a requisição não foi abortada
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     loadData();
-  }, [barbershopId, barbershopSlug]);
 
-  // Reavalia as setas do carrossel de categorias assim que os dados chegam
+    // 6. Função de limpeza (Cleanup): Acionada automaticamente quando o componente é destruído (ex: ao navegar para o login)
+    return () => {
+      controller.abort();
+    };
+  }, [barbershopSlug]);
+
   useEffect(() => {
     categoryCarousel.refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoriesData]);
 
-  // Ao trocar de categoria, volta o scroll de serviços para o início
-  // e reavalia se as setas devem aparecer
   useEffect(() => {
     const el = servicesCarousel.scrollRef.current;
     if (el) el.scrollLeft = 0;
@@ -105,9 +124,7 @@ export function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCategory]);
 
-  const currentCat = categoriesData?.find((c) => c.id === activeCategory);
-
-  // Formata a URL da imagem no escopo do componente
+  const currentCat = categoriesData.find((c) => c.id === activeCategory);
   const bannerUrl = formatImageUrl(barbershop?.home_banner_url, BANNER_PADRAO);
 
   if (loading) {
@@ -135,6 +152,26 @@ export function Home() {
       </Container>
     );
   }
+
+  const handleCheckout = () => {
+    const canAvancar = onCheckout();
+    if (!canAvancar) {
+      alert("Selecione pelo menos um serviço para agendar!");
+      return;
+    }
+
+    if (!userInfo) {
+      const irParaLogin = window.confirm(
+        "Você precisa estar logado para agendar um horário. Deseja ir para a tela de login agora?",
+      );
+      if (irParaLogin) {
+        navigate(barbershopSlug ? `/${barbershopSlug}/login` : "/");
+      }
+      return;
+    }
+
+    navigate("/app/agendamento");
+  };
 
   return (
     <Container style={styles.container}>
@@ -195,14 +232,12 @@ export function Home() {
             {categoriesData.map((cat) => {
               const active = cat.id === activeCategory;
               const countInCat = cart.filter((s) =>
-                categoriesData
-                  .find((c) => c.id === cat.id)
-                  ?.services.some((x) => x.id === s.id),
+                cat.services.some((x) => x.id === s.id),
               ).length;
 
               return (
                 <button
-                  key={cat.id}
+                  key={cat.id} // Chave limpa apenas com o ID original
                   onClick={() => setActiveCategory(cat.id)}
                   style={styles.tabButton(active)}
                 >
@@ -252,7 +287,7 @@ export function Home() {
                 <ServicesScroll ref={servicesCarousel.scrollRef}>
                   {currentCat.services.map((service) => (
                     <ServiceCard
-                      key={service.id}
+                      key={service.id} // Chave limpa apenas com o ID original
                       service={service}
                       inCart={!!cart.find((s) => s.id === service.id)}
                       onToggle={() => toggleService(service)}
@@ -277,18 +312,7 @@ export function Home() {
         </ContainerServices>
       </ContainerRight>
 
-      <CartButton
-        count={cart.length}
-        total={total}
-        onClick={() => {
-          const canAvançar = onCheckout();
-          if (canAvançar) {
-            navigate("/app/agendamento");
-          } else {
-            alert("Selecione pelo menos um serviço para agendar!");
-          }
-        }}
-      />
+      <CartButton count={cart.length} total={total} onClick={handleCheckout} />
     </Container>
   );
 }

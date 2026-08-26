@@ -7,15 +7,24 @@ import { api } from "../../services/api";
 import * as S from "./styles";
 
 export function PainelBarbeiro() {
-  const { userInfo, loading: loadingUser } = useUser(); // Pega dados direto do Contexto autenticado
+  const { userInfo, loading: loadingUser } = useUser();
 
   const myId = userInfo?.id;
   const isAdmin = userInfo?.admin === true || userInfo?.role === "admin";
 
-  // Inicia sempre em "ALL" para não abrir a configuração direto
-  const [selectedBarberId, setSelectedBarberId] = useState("ALL");
+  // CORREÇÃO: Se for admin começa em "ALL", mas se for barbeiro comum, inicia direto com o ID dele!
+  const [selectedBarberId, setSelectedBarberId] = useState(() =>
+    isAdmin ? "ALL" : userInfo?.id,
+  );
   const [barbeirosLista, setBarbeirosLista] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Garante que se o userInfo demorar para carregar, o ID do barbeiro comum é atualizado
+  useEffect(() => {
+    if (!isAdmin && myId) {
+      setSelectedBarberId(myId);
+    }
+  }, [isAdmin, myId]);
 
   useEffect(() => {
     async function carregarBarbeiros() {
@@ -28,7 +37,6 @@ export function PainelBarbeiro() {
         }
       }
     }
-
 
     carregarBarbeiros();
   }, [isAdmin]);
@@ -46,7 +54,8 @@ export function PainelBarbeiro() {
       <S.AccessDeniedContainer>
         <S.AccessDeniedTitle>Acesso negado.</S.AccessDeniedTitle>
         <S.AccessDeniedSub>
-          Não identificamos sua sessão. Faça login novamente para acessar o painel.
+          Não identificamos sua sessão. Faça login novamente para acessar o
+          painel.
         </S.AccessDeniedSub>
       </S.AccessDeniedContainer>
     );
