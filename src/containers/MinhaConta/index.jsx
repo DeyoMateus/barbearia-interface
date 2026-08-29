@@ -99,7 +99,7 @@ export function MinhaConta() {
     }
 
     fetchUserData();
-  }, [putUserData]);
+  }, []);
 
   // Configuração React Hook Form - Perfil
   const {
