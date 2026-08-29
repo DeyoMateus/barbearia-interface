@@ -37,7 +37,7 @@ export const UserProvider = ({ children }) => {
 
   const acceptPrivacyPolicy = async () => {
     try {
-      await api.put("/me/accept-privacy"); // Rota do PrivacyController
+      await api.put("/me/accept-privacy", {}); // Rota do PrivacyController
 
       const updatedData = {
         ...userInfo,
