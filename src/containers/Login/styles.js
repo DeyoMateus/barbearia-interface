@@ -180,7 +180,7 @@ export const CardBottomBorder = styled.div`
 export const FooterText = styled.div`
   margin-top: 25px;
   font-size: 12px;
-  color: rgba(184, 144, 56, 0.5);
+  color: rgb(242 172 18);
   letter-spacing: 1px;
   text-align: center;
 `;
