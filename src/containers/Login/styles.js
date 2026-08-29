@@ -82,7 +82,7 @@ export const BrandArea = styled.div`
   p {
     font-family: "Cinzel", sans-serif;
     font-size: 12px;
-    color: rgba(184, 144, 56, 0.6);
+    color: rgb(242 172 18);
     letter-spacing: 5px;
     text-transform: uppercase;
   }
@@ -186,7 +186,7 @@ export const FooterText = styled.div`
 `;
 
 export const Link = styled(ReactLink)`
-  color: #c9a84c;
+  color: rgb(242 172 18);
   text-decoration: none;
   font-weight: 600;
   margin-left: 5px;
