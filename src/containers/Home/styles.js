@@ -6,7 +6,8 @@ import { C as themeColors, font as themeFonts } from "../../constants/theme.js";
 export const Container = styled.div`
   position: relative;
   min-height: 100vh;
-  /* Fundo transparente para permitir que o AnimatedBg apareça */
+  min-height: 100dvh;
+  width: 100%;
   background: transparent;
   overflow-x: hidden;
 `;
@@ -14,11 +15,16 @@ export const Container = styled.div`
 export const ContainerRight = styled.div`
   position: relative;
   z-index: 2;
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 16px 120px;
+  padding: 16px 12px 80px;
 
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
+    padding: 24px 20px 100px;
+  }
+
+  @media (min-width: 1024px) {
     padding: 32px 24px 140px;
   }
 `;
@@ -26,42 +32,50 @@ export const ContainerRight = styled.div`
 export const HeroSection = styled.section`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 20px;
   align-items: center;
   background: rgba(22, 22, 20, 0.65);
   border: 1px solid ${themeColors?.border || "#222"};
-  border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 32px;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 24px;
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-  @media (max-width: 380px) {
-    padding: 16px;
-    border-radius: 14px;
-    gap: 16px;
+  @media (max-width: 360px) {
+    padding: 12px;
+    border-radius: 12px;
+    gap: 14px;
+  }
+
+  @media (min-width: 640px) {
+    padding: 24px;
+    gap: 28px;
+    border-radius: 20px;
   }
 
   @media (min-width: 992px) {
     grid-template-columns: repeat(2, 1fr);
     gap: 48px;
     padding: 32px;
+    margin-bottom: 32px;
   }
 `;
 
 /* Carrossel de Categorias */
 export const ContainerCategory = styled.div`
   display: flex;
-  width: 100%; /* ADICIONE ESTA LINHA */
-  gap: 12px;
+  width: 100%;
+  gap: 8px;
   flex-wrap: nowrap;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   padding: 4px 2px 12px;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 
-  /* Oculta barra de rolagem mantendo a funcionalidade */
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
@@ -70,6 +84,11 @@ export const ContainerCategory = styled.div`
   & > button {
     scroll-snap-align: start;
     flex-shrink: 0;
+  }
+
+  @media (min-width: 640px) {
+    gap: 12px;
+    margin-bottom: 32px;
   }
 `;
 
@@ -82,29 +101,30 @@ export const CarouselWrapper = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
-  padding: 0 34px;
+  padding: 0 20px;
 
-  @media (max-width: 640px) {
+  @media (min-width: 480px) {
     padding: 0 30px;
   }
-  @media (max-width: 380px) {
-    padding: 0 26px;
+
+  @media (min-width: 768px) {
+    padding: 0 38px;
   }
 `;
 
 export const ScrollButton = styled.button`
   position: absolute;
   top: 50%;
-  ${(props) => (props.$direction === "left" ? "left: 0;" : "right: 0;")}
+  ${(props) => (props.$direction === "left" ? "left: -4px;" : "right: -4px;")}
   z-index: 5;
 
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(8, 8, 8, 0.55);
+  background: rgba(8, 8, 8, 0.75);
   border: 1px solid rgba(201, 168, 76, 0.35);
   color: #c9a84c;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1;
 
   display: flex;
@@ -124,23 +144,34 @@ export const ScrollButton = styled.button`
     background-color 0.2s ease,
     border-color 0.2s ease;
 
+  &::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    bottom: -8px;
+    left: -8px;
+    right: -8px;
+  }
+
   &:hover {
-    background: rgba(201, 168, 76, 0.14);
+    background: rgba(201, 168, 76, 0.2);
     border-color: rgba(201, 168, 76, 0.7);
   }
   &:active {
     transform: translateY(-50%) scale(0.9);
   }
 
-  @media (max-width: 640px) {
-    width: 26px;
-    height: 26px;
-    font-size: 12px;
+  @media (min-width: 640px) {
+    ${(props) => (props.$direction === "left" ? "left: 0;" : "right: 0;")}
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
-  @media (max-width: 380px) {
-    width: 22px;
-    height: 22px;
-    font-size: 11px;
+
+  @media (min-width: 1024px) {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
   }
 `;
 
@@ -148,12 +179,13 @@ export const ScrollButton = styled.button`
 export const ServicesScroll = styled.div`
   display: flex;
   width: 100%;
-  gap: 16px;
+  gap: 12px;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   padding: 4px 2px 16px;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -161,17 +193,31 @@ export const ServicesScroll = styled.div`
   }
 
   & > * {
-    flex: 0 0 100%; /* ocupa 100% da largura do trilho */
-    max-width: 340px; /* mas não fica gigante em telas largas */
+    flex: 0 0 85%;
+    max-width: 320px;
     scroll-snap-align: center;
-    scroll-snap-stop: always; /* impede "pular" mais de um card no swipe rápido */
+    scroll-snap-stop: always;
   }
 
-  @media (min-width: 640px) {
+  @media (min-width: 540px) {
+    gap: 16px;
     & > * {
-      flex: 0 0 auto; /* em telas maiores volta ao tamanho fixo normal */
-      width: 280px;
+      flex: 0 0 260px;
       max-width: none;
+      scroll-snap-align: start;
+    }
+  }
+
+  @media (min-width: 768px) {
+    gap: 20px;
+    & > * {
+      flex: 0 0 280px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    & > * {
+      flex: 0 0 300px;
     }
   }
 `;
@@ -180,23 +226,23 @@ export const ServicesScroll = styled.div`
 
 export const styles = {
   headerBar: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   brandSub: {
     fontFamily: themeFonts?.body || "sans-serif",
     fontSize: 10,
     color: themeColors?.gold || "#c9a84c",
-    letterSpacing: 4,
+    letterSpacing: "clamp(2px, 0.8vw, 4px)",
     textTransform: "uppercase",
     margin: 0,
   },
   brandTitle: {
     fontFamily: themeFonts?.display || "serif",
-    fontSize: "clamp(24px, 4vw, 32px)",
+    fontSize: "clamp(20px, 3.5vw, 32px)",
     color: themeColors?.text || "#fff",
     margin: "4px 0 0",
     fontWeight: 700,
-    marginBottom: "13px",
+    marginBottom: "12px",
   },
   clientBadge: {
     fontFamily: themeFonts?.body || "sans-serif",
@@ -207,17 +253,17 @@ export const styles = {
   },
   heroTitle: {
     fontFamily: themeFonts?.display || "serif",
-    fontSize: "clamp(26px, 4.5vw, 36px)",
+    fontSize: "clamp(22px, 4vw, 36px)",
     color: themeColors?.text || "#fff",
-    margin: "0 0 16px",
-    lineHeight: 1.2,
+    margin: "0 0 12px",
+    lineHeight: 1.25,
   },
   heroSubtitle: {
     fontFamily: themeFonts?.body || "sans-serif",
-    fontSize: 14,
+    fontSize: "clamp(13px, 1.8vw, 15px)",
     color: themeColors?.muted || "#888",
-    margin: "0 0 24px",
-    lineHeight: 1.7,
+    margin: "0 0 20px",
+    lineHeight: 1.6,
   },
   heroDivider: {
     height: 1,
@@ -243,7 +289,7 @@ export const styles = {
   heroImg: {
     width: "100%",
     height: "auto",
-    maxHeight: "320px",
+    maxHeight: "clamp(200px, 35vh, 320px)",
     display: "block",
     objectFit: "cover",
     borderRadius: "12px",
@@ -251,7 +297,7 @@ export const styles = {
   },
   categoryTitle: {
     fontFamily: themeFonts?.display || "serif",
-    fontSize: 24,
+    fontSize: "clamp(20px, 3vw, 24px)",
     color: themeColors?.text || "#fff",
     margin: "0 0 16px",
     fontStyle: "italic",
@@ -262,7 +308,7 @@ export const styles = {
       : "rgba(22, 22, 20, 0.8)",
     border: `1px solid ${isActive ? "transparent" : themeColors?.border || "#333"}`,
     borderRadius: 30,
-    padding: "10px 22px",
+    padding: "8px 16px",
     fontFamily: themeFonts?.body || "sans-serif",
     fontSize: 13,
     color: isActive ? "#1a0e00" : themeColors?.muted || "#ccc",
@@ -271,14 +317,15 @@ export const styles = {
     transition: "all .2s ease-in-out",
     display: "flex",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
+    whiteSpace: "nowrap",
     backdropFilter: "blur(8px)",
   }),
   tabBadge: (isActive) => ({
     background: isActive ? "rgba(0,0,0,0.25)" : themeColors?.gold || "#c9a84c",
     color: isActive ? "#fff" : "#1a0e00",
     borderRadius: 10,
-    padding: "1px 7px",
+    padding: "1px 6px",
     fontSize: 11,
     fontWeight: 700,
   }),

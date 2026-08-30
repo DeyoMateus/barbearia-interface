@@ -7,18 +7,20 @@ import { Link as ReactLink } from "react-router-dom";
 export const Container = styled.div`
   position: relative;
   width: 100%;
-  min-height: 100vh; /* Mudamos de height para min-height para aceitar telas dinâmicas */
-
-  /* Retiramos o overflow: hidden para permitir rolagem se o celular for muito pequeno */
+  min-height: 100vh;
+  min-height: 100dvh; /* Garante visualização perfeita em navegadores mobile sem saltos */
   overflow-y: auto;
-
   background: #080808;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: "Montserrat", sans-serif;
-  padding: 20px; /* Margem de segurança para o cartão nunca encostar nas bordas do celular */
+  padding: 16px;
   box-sizing: border-box;
+
+  @media (min-width: 480px) {
+    padding: 24px;
+  }
 `;
 
 export const CanvasBackground = styled.canvas`
@@ -34,9 +36,9 @@ export const RightContainer = styled.div`
   border: 1px solid rgba(184, 144, 56, 0.35);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  padding: 40px 30px;
+  padding: 28px 18px;
   width: 100%;
-  max-width: 340px;
+  max-width: 360px;
   box-sizing: border-box;
   position: relative;
   box-shadow:
@@ -46,74 +48,96 @@ export const RightContainer = styled.div`
   border-radius: 12px;
   text-align: center;
 
-  @media (max-width: 380px) {
-    padding: 28px 18px;
+  @media (min-width: 480px) {
+    padding: 36px 28px;
+  }
+
+  @media (min-width: 768px) {
+    padding: 40px 32px;
+    max-width: 380px;
   }
 `;
 
 export const BrandArea = styled.div`
   text-align: center;
   margin-bottom: 10px;
-  display: flex; /* Adicionado para alinhar os elementos verticalmente */
+  display: flex;
   flex-direction: column;
   align-items: center;
 
   span {
-    font-size: 14px;
+    font-size: clamp(12px, 3.5vw, 14px);
     color: #c9a84c;
-    letter-spacing: 6px;
+    letter-spacing: clamp(3px, 1.2vw, 6px);
     display: block;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
-  /* Estilo específico para a nova logo para garantir responsividade e ajuste */
   img.new-logo {
     width: 100%;
-    max-width: 180px; /* Ajuste este valor conforme necessário para o tamanho ideal */
+    max-width: 130px;
     height: auto;
-    margin-bottom: 15px; /* Espaçamento inferior para o texto */
+    margin-bottom: 12px;
 
-    /* Media Query para telas pequenas (celulares) */
-    @media (max-width: 480px) {
-      max-width: 140px; /* Reduz o tamanho da logo em telas menores */
+    @media (min-width: 480px) {
+      max-width: 160px;
+      margin-bottom: 15px;
+    }
+
+    @media (min-width: 768px) {
+      max-width: 180px;
     }
   }
 
   p {
     font-family: "Cinzel", sans-serif;
-    font-size: 12px;
+    font-size: clamp(10px, 2.5vw, 12px);
     color: rgb(242 172 18);
-    letter-spacing: 5px;
+    letter-spacing: clamp(3px, 1vw, 5px);
     text-transform: uppercase;
   }
 `;
 
 export const Divider = styled.div`
-  width: 100px;
+  width: 80px;
   height: 1px;
   background: linear-gradient(90deg, transparent, #c9a84c, transparent);
-  margin: 0 auto 32px;
+  margin: 0 auto 24px;
+
+  @media (min-width: 480px) {
+    width: 100px;
+    margin-bottom: 32px;
+  }
 `;
 
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 4px; /* Deixamos o controle do espaçamento para as margens dos containers */
+  gap: 4px;
   width: 100%;
 `;
 
 export const InputContainer = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   width: 100%;
+
+  @media (min-width: 480px) {
+    margin-bottom: 20px;
+  }
 
   label {
     display: block;
     font-size: 11px;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     color: rgba(184, 144, 56, 0.8);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-align: left;
+
+    @media (min-width: 480px) {
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
   }
 
   input {
@@ -122,13 +146,19 @@ export const InputContainer = styled.div`
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
     color: #f0dfa0;
-    font-size: 14px;
-    padding: 14px;
+    /* 16px no mobile evita zoom automático indesejado no iOS / Safari ao focar o campo */
+    font-size: 16px;
+    padding: 12px 14px;
     outline: none;
     box-sizing: border-box;
     transition:
       border-color 0.25s ease,
       background-color 0.25s ease;
+
+    @media (min-width: 768px) {
+      font-size: 14px;
+      padding: 14px;
+    }
 
     &::placeholder {
       color: rgba(184, 144, 56, 0.3);
@@ -159,7 +189,6 @@ export const CardTopBorder = styled.div`
   left: 0;
   right: 0;
   height: 2px;
-  /* Corrigido a sintaxe que estava separada por espaços */
   background: linear-gradient(90deg, transparent, #d4aa50, transparent);
 `;
 
@@ -178,11 +207,15 @@ export const CardBottomBorder = styled.div`
 `;
 
 export const FooterText = styled.div`
-  margin-top: 25px;
+  margin-top: 20px;
   font-size: 12px;
   color: rgb(242 172 18);
   letter-spacing: 1px;
   text-align: center;
+
+  @media (min-width: 480px) {
+    margin-top: 25px;
+  }
 `;
 
 export const Link = styled(ReactLink)`
