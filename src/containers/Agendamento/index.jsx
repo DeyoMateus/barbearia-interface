@@ -195,8 +195,8 @@ export function Agendamento() {
         : userInfo.name;
 
       const finalClientPhone = isEmployee
-        ? customClientPhone.trim() || userInfo.client_phone || "Não informado"
-        : userInfo.client_phone || "Não informado";
+        ? customClientPhone.trim() || undefined
+        : userInfo?.client_phone || undefined;
 
       const dadosAgendamento = {
         barber_id: selectedBarber,

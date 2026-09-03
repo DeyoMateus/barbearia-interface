@@ -21,18 +21,38 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const putUserData = (data) => {
-    setUserInfo(data);
+    if (!data) return;
 
-    const safeData = {
-      id: data.id,
-      name: data.name,
-      email: data.email,
-      client_phone: data.client_phone,
-      admin: data.admin,
-      role: data.role,
-      privacy_accepted_at: data.privacy_accepted_at,
-    };
-    localStorage.setItem("barbearia:userData", JSON.stringify(safeData));
+    setUserInfo((prevInfo) => {
+      // 1. Garante a leitura do telefone independente da chave vinda da API
+      const extractedPhone =
+        data.client_phone ||
+        data.phone ||
+        data.phone_number ||
+        prevInfo?.client_phone ||
+        null;
+
+      const updatedUser = {
+        ...prevInfo,
+        ...data,
+        client_phone: extractedPhone, // Normaliza sempre para client_phone
+      };
+
+      // 2. Prepara os dados seguros para o localStorage
+      const safeData = {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        client_phone: updatedUser.client_phone,
+        admin: updatedUser.admin,
+        role: updatedUser.role,
+        privacy_accepted_at: updatedUser.privacy_accepted_at,
+      };
+
+      localStorage.setItem("barbearia:userData", JSON.stringify(safeData));
+
+      return updatedUser;
+    });
   };
 
   const acceptPrivacyPolicy = async () => {
