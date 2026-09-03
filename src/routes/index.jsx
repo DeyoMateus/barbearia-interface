@@ -20,7 +20,7 @@ import { SelecionarBarbearia } from "../containers/SelecionarBarbearia";
 import { ForgotPassword } from "../containers/ForgotPassword";
 import { ResetPassword } from "../containers/ResetPassword/index.jsx";
 import { SuperAdminDashboard } from "../containers/super/painel/SuperAdminDashboard.jsx";
-import { SuperAdminRegister } from "../containers/super/SuperAdminRegister.jsx";
+//import { SuperAdminRegister } from "../containers/super/SuperAdminRegister.jsx";
 import { SuperAdminLogin } from "../containers/super/login/Login.jsx";
 import { TenantGate } from "../components/TenantGate";
 
@@ -30,8 +30,8 @@ export const router = createBrowserRouter([
     element: <SuperAdminLogin />,
   },
   {
-    path: "/super/setup",
-    element: <SuperAdminRegister />,
+    //  path: "/super/setup",
+    //    element: <SuperAdminRegister />,
   },
   {
     path: "/super/dashboard",

@@ -28,13 +28,17 @@ export function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Estados da Barbearia
+  const [editingShopId, setEditingShopId] = useState(null);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [domain, setDomain] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [homeBannerUrl, setHomeBannerUrl] = useState("");
+  const [address, setAddress] = useState("");
 
+  // Estados do Admin
   const [selectedShopId, setSelectedShopId] = useState("");
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
@@ -57,34 +61,83 @@ export function SuperAdminDashboard() {
     }
   }
 
-  async function handleCreateBarbershop(e) {
+  // --- AÇÕES DA BARBEARIA ---
+
+  async function handleSaveBarbershop(e) {
     e.preventDefault();
+    const payload = {
+      name,
+      slug,
+      cnpj,
+      domain: domain || null,
+      logo_url: logoUrl || null,
+      home_banner_url: homeBannerUrl || null,
+      address: address || null,
+    };
+
     try {
-      await api.post("/super/barbershops", {
-        name,
-        slug,
-        cnpj,
-        domain: domain || null,
-        logo_url: logoUrl || null,
-        home_banner_url: homeBannerUrl || null,
-      });
-      alert("Barbearia criada com sucesso!");
-      setName("");
-      setSlug("");
-      setCnpj("");
-      setDomain("");
-      setLogoUrl("");
-      setHomeBannerUrl("");
+      if (editingShopId) {
+        await api.put(`/super/barbershops/${editingShopId}`, payload);
+        alert("Barbearia atualizada com sucesso!");
+      } else {
+        await api.post("/super/barbershops", payload);
+        alert("Barbearia criada com sucesso!");
+      }
+
+      resetShopForm();
       loadBarbershops();
     } catch (err) {
       alert(
-        "Erro ao criar barbearia: " +
+        "Erro ao salvar barbearia: " +
           (err.response?.data?.message ||
             err.response?.data?.error ||
             err.message),
       );
     }
   }
+
+  function handleEditShopClick(shop) {
+    setEditingShopId(shop.id);
+    setName(shop.name || "");
+    setSlug(shop.slug || "");
+    setCnpj(shop.cnpj || "");
+    setDomain(shop.domain || "");
+    setLogoUrl(shop.logo_url || "");
+    setHomeBannerUrl(shop.home_banner_url || "");
+    setAddress(shop.address || "");
+  }
+
+  function resetShopForm() {
+    setEditingShopId(null);
+    setName("");
+    setSlug("");
+    setCnpj("");
+    setDomain("");
+    setLogoUrl("");
+    setHomeBannerUrl("");
+    setAddress("");
+  }
+
+  async function handleToggleStatus(shopId, currentStatus) {
+    const actionName = currentStatus ? "suspender" : "ativar";
+    if (!confirm(`Tem certeza que deseja ${actionName} esta barbearia?`))
+      return;
+
+    try {
+      await api.patch(`/super/barbershops/${shopId}/status`, {
+        active: !currentStatus,
+      });
+      alert(`Barbearia ${currentStatus ? "suspensa" : "ativada"} com sucesso!`);
+      loadBarbershops();
+    } catch (err) {
+      alert(
+        "Erro ao alterar status: " +
+          (err.response?.data?.message || err.message),
+      );
+    }
+  }
+
+  // --- AÇÕES DO ADMIN ---
 
   async function handleSaveAdmin(e) {
     e.preventDefault();
@@ -120,17 +173,16 @@ export function SuperAdminDashboard() {
 
   async function handleEditAdminClick(shop) {
     setSelectedShopId(shop.id);
-
     const admin = shop.users && shop.users.length > 0 ? shop.users[0] : null;
 
     if (admin) {
-      setIsEditingAdmin(true); // Se existir admin, entra no modo Edição (PUT)
+      setIsEditingAdmin(true);
       setAdminName(admin.name || "");
       setAdminEmail(admin.email || "");
       setAdminPhone(admin.client_phone || "");
       setAdminPassword("");
     } else {
-      setIsEditingAdmin(false); // Se NÃO existir admin, entra no modo Cadastro (POST)
+      setIsEditingAdmin(false);
       setAdminName("");
       setAdminEmail("");
       setAdminPhone("");
@@ -140,7 +192,6 @@ export function SuperAdminDashboard() {
 
   function handleShopSelectChange(shopId) {
     setSelectedShopId(shopId);
-
     const shop = barbershops.find((s) => s.id === shopId);
     const admin = shop?.users && shop.users.length > 0 ? shop.users[0] : null;
 
@@ -188,25 +239,6 @@ export function SuperAdminDashboard() {
     setIsEditingAdmin(false);
   }
 
-  async function handleToggleStatus(shopId, currentStatus) {
-    const actionName = currentStatus ? "suspender" : "ativar";
-    if (!confirm(`Tem certeza que deseja ${actionName} esta barbearia?`))
-      return;
-
-    try {
-      await api.patch(`/super/barbershops/${shopId}/status`, {
-        active: !currentStatus,
-      });
-      alert(`Barbearia ${currentStatus ? "suspensa" : "ativada"} com sucesso!`);
-      loadBarbershops();
-    } catch (err) {
-      alert(
-        "Erro ao alterar status: " +
-          (err.response?.data?.message || err.message),
-      );
-    }
-  }
-
   async function handleLogout() {
     try {
       await api.post("/logout");
@@ -232,10 +264,20 @@ export function SuperAdminDashboard() {
       </Header>
 
       <GridSection>
-        {/* Cadastro de Barbearia */}
+        {/* Cadastro / Edição de Barbearia */}
         <Card>
-          <h2>Cadastrar Nova Barbearia</h2>
-          <Form onSubmit={handleCreateBarbershop}>
+          <CardHeader>
+            <h2>
+              {editingShopId ? "Editar Barbearia" : "Cadastrar Nova Barbearia"}
+            </h2>
+            {editingShopId && (
+              <button type="button" onClick={resetShopForm}>
+                Cancelar Edição
+              </button>
+            )}
+          </CardHeader>
+
+          <Form onSubmit={handleSaveBarbershop}>
             <Input
               type="text"
               placeholder="Nome da Barbearia"
@@ -266,6 +308,12 @@ export function SuperAdminDashboard() {
             />
             <Input
               type="text"
+              placeholder="Endereço ou Link da Localização (ex: Rua X, 123 ou Google Maps URL)"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+            <Input
+              type="text"
               placeholder="Domínio Personalizado (opcional, ex: app.suabarbearia.com)"
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
@@ -282,7 +330,9 @@ export function SuperAdminDashboard() {
               value={homeBannerUrl}
               onChange={(e) => setHomeBannerUrl(e.target.value)}
             />
-            <SubmitButton type="submit">Criar Barbearia</SubmitButton>
+            <SubmitButton type="submit" $isEditing={!!editingShopId}>
+              {editingShopId ? "Salvar Alterações" : "Criar Barbearia"}
+            </SubmitButton>
           </Form>
         </Card>
 
@@ -362,6 +412,7 @@ export function SuperAdminDashboard() {
               <tr>
                 <th>Logo</th>
                 <th>Barbearia</th>
+                <th>Endereço / Localização</th>
                 <th>Domínio</th>
                 <th>Admin Vinculado</th>
                 <th>E-mail do Admin</th>
@@ -387,6 +438,7 @@ export function SuperAdminDashboard() {
                       <ShopName>{shop.name}</ShopName>
                       <ShopSlug>{shop.slug}</ShopSlug>
                     </td>
+                    <td>{shop.address || "-"}</td>
                     <td>{shop.domain || "-"}</td>
                     <td>{admin ? admin.name : <i>Sem admin</i>}</td>
                     <td>{admin ? admin.email : "-"}</td>
@@ -396,12 +448,22 @@ export function SuperAdminDashboard() {
                       </StatusBadge>
                     </td>
                     <td>
-                      <ActionButton
-                        $variant={shop.active ? "danger" : "success"}
-                        onClick={() => handleToggleStatus(shop.id, shop.active)}
-                      >
-                        {shop.active ? "Suspender" : "Ativar"}
-                      </ActionButton>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <ActionButton
+                          $variant="amber"
+                          onClick={() => handleEditShopClick(shop)}
+                        >
+                          Editar
+                        </ActionButton>
+                        <ActionButton
+                          $variant={shop.active ? "danger" : "success"}
+                          onClick={() =>
+                            handleToggleStatus(shop.id, shop.active)
+                          }
+                        >
+                          {shop.active ? "Suspender" : "Ativar"}
+                        </ActionButton>
+                      </div>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: "0.5rem" }}>
