@@ -284,3 +284,36 @@ export const PageButton = styled.button`
     border-color: #c9a84c;
   }
 `;
+// Adicione estes dois componentes ao final do arquivo src/containers/Servico/styles.js
+
+export const LocationButton = styled.a`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(201, 168, 76, 0.12);
+  color: #f0dfa0;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: rgba(201, 168, 76, 0.25);
+    border-color: #c9a84c;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+`;
+
+export const LocationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+`;

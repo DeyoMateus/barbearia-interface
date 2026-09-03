@@ -214,7 +214,7 @@ export function Agendamento() {
 
       toast.success("Presença confirmada com sucesso!");
       clearCart();
-      navigate("/app");
+      navigate("/app/Servico");
     } catch (error) {
       console.error("Erro completo da API:");
 
