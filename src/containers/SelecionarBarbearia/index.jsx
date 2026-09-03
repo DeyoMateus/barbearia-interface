@@ -67,7 +67,7 @@ export function SelecionarBarbearia() {
         <input
           type="text"
           required
-          placeholder="ex: barbeariadojoao"
+          placeholder="ex: barbeariaedhi"
           value={slugDigitado}
           onChange={(e) => setSlugDigitado(e.target.value)}
           style={{
