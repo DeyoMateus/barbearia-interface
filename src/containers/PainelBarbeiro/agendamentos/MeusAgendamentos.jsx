@@ -100,6 +100,19 @@ function formatarTelefone(telefone) {
   return telefone;
 }
 
+function obterLinkWhatsApp(telefone) {
+  if (!telefone) return null;
+  let limpo = String(telefone).replace(/\D/g, "");
+  if (!limpo) return null;
+
+  // Se não tiver o DDI do Brasil (55) e tiver 10 ou 11 dígitos, adiciona o 55
+  if (limpo.length === 10 || limpo.length === 11) {
+    limpo = `55${limpo}`;
+  }
+
+  return `https://wa.me/${limpo}`;
+}
+
 export function MeusAgendamentos({ barberId, refreshTrigger }) {
   const [agendamentos, setAgendamentos] = useState([]);
   const [disponibilidades, setDisponibilidades] = useState([]);
@@ -429,6 +442,7 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
                   );
                   const telefoneCliente =
                     item.client_phone || item.User?.client_phone;
+                  const linkWhatsapp = obterLinkWhatsApp(telefoneCliente);
 
                   return (
                     <Card key={item.id} $accentColor={estiloVisual.color}>
@@ -449,7 +463,26 @@ export function MeusAgendamentos({ barberId, refreshTrigger }) {
 
                         <CardLabel>CONTATO</CardLabel>
                         <CardServiceName>
-                          📞 {formatarTelefone(telefoneCliente)}
+                          {linkWhatsapp ? (
+                            <a
+                              href={linkWhatsapp}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: "#25D366",
+                                textDecoration: "none",
+                                fontWeight: "bold",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                              title="Clique para abrir no WhatsApp"
+                            >
+                              💬 {formatarTelefone(telefoneCliente)}
+                            </a>
+                          ) : (
+                            `📞 ${formatarTelefone(telefoneCliente)}`
+                          )}
                         </CardServiceName>
 
                         <CardLabel>SERVIÇO</CardLabel>
