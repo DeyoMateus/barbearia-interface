@@ -68,11 +68,11 @@ export const BlockIcon = styled.span`
 `;
 
 export const BlockLabel = styled.p`
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 4px;
+  font-size: 18px; /* Aumentado de 10px para 18px */
+  font-weight: 700; /* Alterado de 400 para 700 (negrito) */
+  letter-spacing: 2px; /* Reduzido o espaçamento para ficar mais legível */
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.55);
+  color: #f0dfa0; /* Cor mais viva e sem transparência para dar nitidez */
   margin-bottom: 12px;
 `;
 
